@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Civil Contractor Worker Management</title>
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+  /* Reset & base */
+  body {
+    background: url(background.png);
+    background-position: center;
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+    color: #34495e;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  h1{
+    margin:-2px;
+    margin-left: 2px;
+    font-size: 15px;
+    color: inherit;
+    text-decoration: none;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* Header */
+  header {
+    background: #2c3e50;
+    color: white;
+    padding: 18px 20px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+    user-select: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header.hidden {
+    display: none;
+  }
+  /* Worker list page */
+  #worker-list {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 10px;
+    max-width: 320px;
+  }
+/* Worker item container */
+.worker-item {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.75);
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.3s ease;
+}
+.worker-item:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+/* Name and Mobile Input Fields */
+.worker-item input[type="text"],
+.worker-item input[type="tel"] {
+  font-size: 1rem;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+.worker-item input:focus {
+  border-color: #2980b9;
+  outline: none;
+  box-shadow: 0 0 6px rgba(41,128,185,0.4);
+}
+
+/* Delete Button */
+.worker-item .delete-btn {
+  background: #e74c3c;
+  border: none;
+  color: white;
+  font-family: sans-serif;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.worker-item .edit-btn {
+  background: #3C80E7;
+  font-family: 'Roboto', sans-serif;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  transition: background-color 0.3s ease;
+}
+
+/* Month item container */
+/* Month delete button same as worker delete */
+.month-item .delete-btn {
+  background: #e74c3c;
+  border: none;
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  margin-left: 1px;
+  padding: 8px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+
+
+  /* Floating plus button */
+  .floating-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #2980b9;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    color: white;
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 6px 20px rgba(41,128,185, 0.42);
+    z-index: 110;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+  }
+  .floating-btn:hover,
+  .floating-btn:focus {
+    background-color: #1f6391;
+    outline: none;
+  }
+  /* Hide all add buttons except relevant */
+  .hidden {
+    display: none !important;
+  }
+
+  /* Worker detail page and month selection */
+  #worker-detail,
+  #month-selection {
+    display: none;
+    flex-direction: column;
+  }
+  #worker-detail.active,
+  #month-selection.active {
+    display: flex;
+  }
+  /* Fixed back buttons */
+  #worker-detail-header,
+  #month-header {
+    background: #2c3e50;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: 0 3px 8px rgb(0 0 0 / 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  #back-to-workers-btn,
+  #back-to-months-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.9rem;
+    margin-right: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    font-weight: 700;
+    transition: color 0.3s ease;
+    user-select: none;
+  }
+  #back-to-workers-btn:hover,
+  #back-to-months-btn:hover,
+  #back-to-workers-btn:focus,
+  #back-to-months-btn:focus {
+    color: #f39c12;
+    outline: none;
+  }
+  /* Months list */
+  #month-list {
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .month-item {
+    background: #ffffff;
+    flex: 1 1 100px;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.75);
+    padding: 10px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #2c3e50;
+    cursor: pointer;
+    text-align: center;
+    user-select: none;
+    transition: background-color 0.25s ease;
+  }
+  .month-item:hover,
+  .month-item:focus {
+    background-color: #d8e9fd;
+    outline: none;
+  }
+/* TABS CONTAINER */
+#tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  background: linear-gradient(to right, #f8f9fa, #ffffff);
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+/* INDIVIDUAL TAB */
+#tabs button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 9px;
+  background: transparent;
+  border: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #555;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+}
+
+#tabs button i {
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+/* HOVER STATE */
+#tabs button:hover {
+  background: #eef3f7;
+  color: #2980b9;
+}
+
+#tabs button:hover i {
+  color: #2980b9;
+}
+
+/* ACTIVE STATE */
+#tabs button.active {
+  background: #ffffff;
+  color: #d35400;
+  border-radius: 20px;
+  border-bottom: 3px solid #d35400;
+  box-shadow: inset 0 -2px 0 #d35400;
+}
+
+#tabs button.active i {
+  color: #d35400;
+}
+
+/* TAB CONTENT SECTIONS */
+.tab-section {
+  display: none;
+  padding: 20px;
+  background: transparent;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+  border-top: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-section.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+  /* Attendance and payment layout */
+  #attendance-summary{
+    display: flex;
+  }
+  #attendance-summary,
+  #payment-summary {
+    font-weight: 700;
+    font-size: 1.5rem;
+    gap: 10px;
+  }
+  #payment-summary {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .summary-payment-item {
+    background: #f0f6ff;
+    padding: 10px 10px;
+    border-radius: 10px;
+    font-size: 1rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.75);
+    color: #000000;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 300px;
+  }
+  
+  .summary-item {
+    background: #f0f6ff;
+    padding: 10px 10px;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.75);
+    color: #000000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 130px;
+  }
+  .summary-item span {
+    font-size: 1.2rem;
+    color: #2165a9;
+  }
+  #daily-wage {
+    font-size: 1.5rem;
+    width: 100px;
+    font-weight: 600;
+    padding: 6px 8px;
+    border: 1px solid #1D89D0;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+  #daily-wage:focus {
+    outline: none;
+    box-shadow: 0 0 7px rgba(41,128,185,0.6);
+  }
+  
+  /* Dates Container */
+  #dates-container,
+  #payment-dates-container {
+    overflow-x: auto;
+    padding: 0px;
+  }
+  /* Grid for dates with attendance and payment info */
+  #dates-grid,
+  #payment-dates-grid {
+    display: grid;
+    grid-template-columns: repeat(fit, minmax(70px, 1fr));
+    gap: 12px;
+  }
+  .date-box {
+    background: white;
+    border: 1.5px solid #ccc;
+    border-radius: 10px;
+    padding: 7px 7px ;
+    box-sizing: border-box;
+    user-select: none;
+    cursor: default;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.3s ease, background-color 0.2s ease;
+    min-width: 70px;
+  }
+  .date-box:hover,
+  .date-box:focus {
+    outline: none;
+    border-color: #2980b9;
+    box-shadow: 0 0 8px rgba(41,128,185,0.5);
+    background-color: #e7f0fd;
+  }
+  .date-label {
+    font-weight: 700;
+    font-size: 2rem;
+    color: #2c3e50;
+  }
+  .status-indicator {
+    font-size: 1rem;
+    display: flex;
+    flex-direction: row;
+    gap: 7px;
+  }
+  .status-button {
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    user-select: none;
+    cursor: pointer;
+    min-width: 28px;
+    text-align: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  .status-button.present {
+    color: #27ae60;
+    border-color: #27ae60;
+  }
+  .status-button.absent {
+    color: #c0392b;
+    border-color: #c0392b;
+  }
+  .status-button.selected.present {
+    background-color: #27ae60;
+    color: white;
+  }
+  .status-button.selected.absent {
+    background-color: #c0392b;
+    color: white;
+  }
+  .payment-input {
+    margin-top: 8px;
+    padding: 4px 6px;
+    width: 40px;
+    border-radius: 6px;
+    border: 1.5px solid #bbb;
+    font-size: 0.9rem;
+  }
+  .payment-input:focus {
+    outline: none;
+    border-color: #2980b9;
+    box-shadow: 0 0 6px rgba(41,128,185,0.5);
+  }
+  /* Messages */
+  .message {
+    margin-top: 14px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-height: 26px;
+    color: #27ae60;
+    user-select: none;
+  }
+  .error {
+    color: #c0392b;
+  }
+  /* Popup modal styles */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 300;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+  }
+  .modal-overlay.active {
+    display: flex;
+  }
+  .modal {
+    background: white;
+    max-width: 420px;
+    width: 100%;
+    border-radius: 14px;
+    box-shadow: 0 8px 26px rgba(0,0,0,0.35);
+    padding: 26px 30px;
+    position: relative;
+  }
+  .modal h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-weight: 700;
+    font-size: 1.45rem;
+    color: #2c3e50;
+  }
+  .modal label {
+    margin-bottom: 8px;
+    font-weight: 700;
+    display: block;
+    color: #2c3e50;
+    user-select: none;
+  }
+  .modal input[type="text"],
+  .modal input[type="month"],
+  .modal input[type="date"],
+  .modal select,
+  .modal input[type="number"] {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    border: 2px solid #bbb;
+    margin-bottom: 18px;
+    box-sizing: border-box;
+  }
+  .modal input[type="text"]:focus,
+  .modal input[type="month"]:focus,
+  .modal input[type="date"]:focus,
+  .modal select:focus,
+  .modal input[type="number"]:focus {
+    border-color: #2980b9;
+    outline: none;
+    box-shadow: 0 0 10px rgba(41,128,185, 0.6);
+  }
+  .modal .btns {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+  }
+  .modal button {
+    font-weight: 700;
+    padding: 12px 32px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+  }
+  .modal button.save-btn {
+    background: #2980b9;
+    color: white;
+    font-size: .95rem;
+    box-shadow: 0 6px 20px rgba(41,128,185,0.48);
+  }
+  .modal button.save-btn:hover,
+  .modal button.save-btn:focus {
+    background: #216093;
+    outline: none;
+  }
+  .modal button.cancel-btn {
+    background: #c0392b;
+    color: white;
+    font-size: .9rem;
+    box-shadow: 0 6px 20px rgba(192,57,43,0.48);
+  }
+  .modal button.cancel-btn:hover,
+  .modal button.cancel-btn:focus {
+    background: #8b2821;
+    outline: none;
+  }
+  .modal .error {
+    margin-top: -12px;
+    margin-bottom: 12px;
+    color: #c0392b;
+    font-weight: 700;
+    font-size: 1rem;
+    min-height: 24px;
+    user-select: none;
+  }
+  /* Accessibility helper */
+  [tabindex="-1"]:focus {
+    outline: none !important;
+  }
+  
+  
+  .search-bar-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 24px;
+  padding: 6px 12px;
+  width: 100%;
+  max-width: 300px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 10px auto;
+}
+
+.search-icon {
+  color: #9aa0a6;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  font-size: 18px;
+  width: 100%;
+  padding: 8px 0;
+  background-color: transparent;
+}
+.search-input:hover {
+  border: none;
+  outline: none;
+}
+
+
+/* Conformation css*/
+.modal1 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: white;
+  color: #000000;
+  font-weight: bold;
+  padding: 5px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal-content input {
+  width: 100%;
+padding: 10px 14px;
+font-size: 1.1rem;
+border-radius: 8px;
+border: 2px solid #bbb;
+margin-bottom: 18px;
+box-sizing: border-box;
+}
+
+.modal-content input:hover{
+  border-color: #2980b9;
+  outline: none;
+  box-shadow: 0 0 10px rgba(41, 128, 185, 0.6);
+}
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#cancelConfirm, #confirmNo {
+  font-weight: bold;
+  width:50%;
+  background-color: #e74c3c;
+  color: white;
+}
+
+#okConfirm, #confirmYes {
+  font-weight: bold;
+  width:50%;
+  background-color: #007bff;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+
+.payment-amount-box {
+  background: linear-gradient(to right, #e0f7fa, #ffffff);
+  color: #00796b;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 8px 12px;
+  text-align: center;
+  border: 1px solid #b2dfdb;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  margin-top: 6px;
+}
+
+body.dark-mode .tab-section,
+body.dark-mode {
+  background-color: #1e1e1e;
+  color: #ecf0f1;
+}
+
+body.dark-mode #dropdown-menu {
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  border-color: #555;
+}
+
+body.dark-mode select {
+  background-color: #34495e;
+  color: #ecf0f1;
+  border-color: #555;
+}
+
+
+.auth-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height:600px;
+  background: transparent;
+  padding: 20px;
+}
+
+.form-box {
+  position: relative;
+  padding: 10px;
+  border-radius: 20px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+h2 {
+  font-size: 2em;
+  color: #fff;
+  text-align: center;
+}
+
+.inputbox {
+  position: relative;
+  margin: 20px 0;
+  width: 270px;
+  border-bottom: 2px solid #fff;
+}
+
+.inputbox label {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 1em;
+  transition: .5s;
+}
+
+input:focus~label,
+input:valid~label {
+  top: -5px;
+}
+
+.inputbox input {
+  width: 100%;
+  height: 35px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1em;
+  padding: 0 35px 0 5px;
+  color: #fff;
+}
+
+
+.inputbox ion-icon {
+  position: absolute;
+  right: 8px;
+  color: #fff;
+  font-size: 1.2em;
+  top: 20px;
+}
+
+.forget {
+  margin: -15px 0 15px;
+  font-size: .9em;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+}
+
+.forget label input {
+  margin-right: 3px;
+  
+}
+
+.forget label a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600
+}
+
+.forget label a:hover {
+  text-decoration: underline;
+}
+
+
+.register {
+  font-size: .9em;
+  color: #fff;
+  text-align: center;
+  margin: 25px 0 10px;
+}
+
+.register p a {
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+}
+
+.register p a:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  color: #FF1800;
+  font-weight: bold;
+  text-align: center;
+  margin-top: -10px;
+}
+
+
+</style>
+</head>
+<body>
+<!-- Registration Screen -->
+<div id="auth-container">
+  <section class="auth-screen">
+    <div class="form-box">
+      <div class="form-value">
+        <form id="login-form">
+          <h2>Login</h2>
+          <div class="inputbox">
+            <input type="text" id="login-username" required />
+            <label>Username</label>
+          </div>
+          <div class="inputbox">
+            <input type="password" id="login-password" required />
+            <label>Password</label>
+          </div>
+          <p id="login-error" class="error-message" style="display: none;">Invalid Username & Password</p>
+          <button type="submit" style="width: 100%;
+height: 40px;
+border-radius: 40px;
+background: #fff;
+border: none;
+outline: none;
+cursor: pointer;
+font-size: 1em;
+font-weight: 600;">Log In</button>
+          <div class="register">
+            <p>Don't have an account? <a href="#" id="go-to-register">Register</a></p>
+          </div>
+        </form>
+        <form id="register-form" style="display: none;">
+          <h2>Register</h2>
+          <div class="inputbox">
+            <input type="text" id="reg-name" required />
+            <label>Name</label>
+          </div>
+          <div class="inputbox">
+            <input type="tel" id="reg-mobile" required />
+            <label>Mobile</label>
+          </div>
+          <div class="inputbox">
+            <input type="text" id="reg-username" required />
+            <label>Username</label>
+          </div>
+          <div class="inputbox">
+            <input type="password" id="reg-password" required />
+            <label>Password</label>
+          </div>
+          <div class="inputbox">
+            <input type="email" id="reg-email" required />
+            <label>Email</label>
+          </div>
+          <button type="submit" style="width: 100%;
+height: 40px;
+border-radius: 40px;
+background: #fff;
+border: none;
+outline: none;
+cursor: pointer;
+font-size: 1em;
+font-weight: 600;">Register</button>
+          <div class="register">
+            <p>Already have an account? <a href="#" id="go-to-login">Login</a></p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>
+
+  
+<div id="app-container" style="display: none;">
+<header id="main-header" style="display: flex; justify-content: space-between; align-items: center;">
+  <span>Worker Management</span>
+
+  <!-- Menu Button -->
+  <div style="position: relative;">
+    <button id="menu-toggle" style="background: none; border: none; color: white; font-size: 1.6rem; cursor: pointer;">
+      <i class="fas fa-ellipsis-v"></i>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div id="dropdown-menu" style="display: none; position: absolute; top: 40px; right: 0; background: white; color: #2c3e50; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); width: 180px; z-index: 1000;">
+      <button id="toggle-dark-mode" style="padding: 10px 14px; width: 100%; background: none; border: none; text-align: left; cursor: pointer;">
+        <i class="fas fa-moon"></i> Dark Mode
+      </button>
+      <button onclick="logout()" style="padding: 10px 14px; width: 100%; background: none; border: none; text-align: left; cursor: pointer;">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </div>
+</header>
+
+  <!-- Worker List Page -->
+  <section id="worker-list-section" aria-label="Worker list">
+    <div id="worker-list" role="list" aria-live="polite" aria-relevant="additions">
+      <!-- Worker items inserted here -->
+    </div>
+  </section>
+
+  <!-- Month Selection for the Current Worker -->
+  <section id="month-selection" aria-label="Select month for worker activity">
+    <header id="month-header">
+      <button id="back-to-workers-btn" aria-label="Back to worker list" title="Back to worker list"><i class="fas fa-arrow-left"></i></button>
+      <div id="month-worker-name" style="font-weight: 700; font-size: 1.5rem; user-select:none;"></div>
+    </header>
+    <div id="month-list" role="list" aria-label="Select a month">
+      <!-- Months listed here -->
+    </div>
+  </section>
+
+  <!-- Worker Detail Page (Attendance and Payment for selected month) -->
+  <section id="worker-detail" aria-label="Worker attendance and payment details" aria-live="polite">
+    <header id="worker-detail-header">
+      <button id="back-to-months-btn" aria-label="Back to month selection" title="Back to months list"><i class="fas fa-arrow-left"></i></button>
+      <div id="worker-name-heading" style="user-select:none;"></div>
+      <div id="month-label" style="margin-left:auto; font-weight: 700; font-size: 1.15rem; color:#555; user-select:none;"></div>
+    </header>
+    <nav id="tabs" role="tablist" aria-label="Attendance and Payment Tabs">
+      <button type="button" id="tab-attendance" class="active" role="tab" aria-selected="true" aria-controls="attendance-section" tabindex="0">
+        Attendance <i class="fas fa-plus-circle" id="add-attendance-popup-btn" title="Add Attendance" style="margin-left: 8px; cursor: pointer; color: #2980b9;"></i>
+      </button>
+      <button type="button" id="tab-payment" role="tab" aria-selected="false" aria-controls="payment-section" tabindex="-1">
+        Payment <i class="fas fa-plus-circle" id="add-payment-popup-btn" title="Add Payment" style="margin-left: 8px; cursor: pointer; color: #2980b9;"></i>
+      </button>
+    </nav>
+
+
+
+    <!-- Attendance Section -->
+    <section id="attendance-section" class="tab-section active" role="tabpanel" tabindex="0" aria-labelledby="tab-attendance">
+      <div id="attendance-summary" style="justify-content: space-between; padding: 0px;">
+        <div class="summary-item">Present
+          <span id="total-days-present">0</span>
+        </div>
+        <div class="summary-item">Absent
+          <span id="total-days-absent">0</span>
+        </div>
+      </div>
+      <div id="dates-container">
+        <div id="dates-grid" tabindex="0" aria-label="Attendance dates grid" style="margin-top: 10px;">
+          <!-- Date boxes dynamically generated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Payment Section -->
+    <section id="payment-section" class="tab-section" role="tabpanel" tabindex="0" aria-labelledby="tab-payment">
+      <div class="summary-payment-item" id="payment-summary" style="flex-direction: column; display: flex; gap:10px;">
+        <div style="width: max-content;">
+          Total Present Days:-  <span id="total-payment-present" style="font-size: 1.7rem; color: #2165a9;">0</span>
+        </div>
+        <div  style="width: max-content;">
+          Paid: ₹<span id="total-paid" style="font-size: 1.7rem; color: #2165a9;">0</span>
+        </div>
+        <div style="width: max-content;">
+            Unpaid: ₹<span id="total-unpaid" style="font-size: 1.7rem; color: #2165a9;">0</span>
+        </div>
+      <div id="daily-wage-container"  style="width: max-content;">
+          Daily Wage (₹)
+          <input type="number" id="daily-wage" min="0" step="1" value="0" aria-label="Daily wage input" style="font-size: 1.7rem; color: #2165a9;" />
+        </div>
+      </div>
+      <div id="payment-dates-container">
+        <div id="payment-dates-grid" tabindex="0" aria-label="Payment dates grid" style="margin-top: 10px;">
+          <!-- Payment date boxes dynamically generated -->
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- Modals for adding attendance and payment records -->
+  <div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" tabindex="-1">
+    <div class="modal" role="document">
+      <h3 id="modal-title">Add Attendance Record</h3>
+      <form id="add-attendance-form" style="display:none;">
+        <label for="attendance-date-input">Date:</label>
+        <input type="date" id="attendance-date-input" name="attendance-date-input" required autocomplete="off" aria-required="true" />
+        <label for="attendance-status-input">Status:</label>
+        <select id="attendance-status-input" name="attendance-status-input" required>
+          <option value="" disabled selected>-- Select --</option>
+          <option value="Present">Present</option>
+          <option value="Absent">Absent</option>
+        </select>
+        <div class="btns" style="margin-top:10px; display: flex; justify-content: flex-end; gap: 16px;">
+          <button type="button" class="cancel-btn" id="modal-cancel-btn-attendance"><i class="fas fa-times"></i> Cancel</button>
+          <button type="submit" class="save-btn"><i class="fas fa-check"></i> Add</button>
+        </div>
+        <p id="modal-error-attendance" class="error" aria-live="polite"></p>
+      </form>
+
+      <form id="add-payment-form" style="display:none;">
+        <label for="payment-date-input">Date:</label>
+        <input type="date" id="payment-date-input" name="payment-date-input" required autocomplete="off" aria-required="true" />
+        <label for="payment-amount-input">Amount (₹):</label>
+        <input type="number" id="payment-amount-input" name="payment-amount-input" min="0" step="0.01" required />
+        <div class="btns" style="margin-top:10px; display: flex; justify-content: flex-end; gap: 16px;">
+          <button type="button" class="cancel-btn" id="modal-cancel-btn-payment"><i class="fas fa-times"></i> Cancel</button>
+          <button type="submit" class="save-btn"><i class="fas fa-check"></i> Add</button>
+        </div>
+        <p id="modal-error-payment" class="error" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Worker Modal -->
+  <div id="add-worker-modal-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="add-worker-modal-title" aria-describedby="add-worker-modal-desc" tabindex="-1">
+    <div class="modal" role="document">
+      <h3 id="add-worker-modal-title">Add New Worker</h3>
+      <form id="add-worker-form">
+        <label for="worker-name-input">Worker Name</label>
+        <input type="text" id="worker-name-input" name="worker-name-input" required autocomplete="off" aria-required="true" />
+        <label for="worker-number-input">Mobile No.</label>
+        <input type="number" id="worker-number-input" name="worker-number-input" required autocomplete="off" aria-required="true" />
+        <div class="btns">
+          <button type="button" class="cancel-btn" id="modal-cancel-btn-worker"><i class="fas fa-times"></i> Cancel</button>
+          <button type="submit" class="save-btn"><i class="fas fa-check"></i> Add</button>
+        </div>
+        <p id="modal-error-worker" class="error" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+  
+  
+  
+<!-- Confirm/Edit Modal -->
+<div id="confirmModal" class="modal1 hidden">
+  <div class="modal-content">
+    <p id="confirmMessage"></p>
+    <input id="confirmInput1" type="text" placeholder="Enter new name" class="hidden" />
+    <input id="confirmInput2" type="text" placeholder="Enter 10-digit mobile" class="hidden" />
+    <div class="modal-buttons">
+      <button id="cancelConfirm">Cancel</button>
+      <button id="okConfirm">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Confirm Modal -->
+<div id="customConfirm" class="modal1 hidden">
+  <div class="modal-content">
+    <p id="confirmMessage">Sure Are You Want to Delete....??</p>
+    <div class="modal-buttons">
+      <button id="confirmNo">No</button>
+      <button id="confirmYes">Yes</button>
+    </div>
+  </div>
+</div>
+
+
+
+<button id="add-worker-btn" class="floating-btn" aria-label="Add new worker" title="Add new worker"><i class="fas fa-plus"></i></button>
+<button id="add-month-btn" class="floating-btn" aria-label="Add new month" title="Add new month">
+  <i class="fas fa-plus"></i>
+</button>
+
+<!-- Add Month Modal -->
+<div id="addMonthModalOverlay" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal" role="document">
+    <h3>Add New Month</h3>
+    <input type="month" id="monthInput" />
+    <p id="modalErrorMonth" class="error"></p>
+    <div class="btns">
+      <button id="cancelAddMonth" class="cancel-btn">Cancel</button>
+      <button id="confirmAddMonth" class="save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    // Elements main pages
+    const mainHeader = document.getElementById('main-header');
+    const workerListSection = document.getElementById('worker-list-section');
+    const workerListContainer = document.getElementById('worker-list');
+    const monthSelectionSection = document.getElementById('month-selection');
+    const monthWorkerName = document.getElementById('month-worker-name');
+    const monthList = document.getElementById('month-list');
+    const workerDetailSection = document.getElementById('worker-detail');
+    const workerNameHeading = document.getElementById('worker-name-heading');
+    const monthLabel = document.getElementById('month-label');
+
+    // Tabs and add buttons in tabs
+    const tabAttendance = document.getElementById('tab-attendance');
+    const tabPayment = document.getElementById('tab-payment');
+    const attendanceSection = document.getElementById('attendance-section');
+    const paymentSection = document.getElementById('payment-section');
+    const addAttendancePopupBtn = document.getElementById('add-attendance-popup-btn');
+    const addPaymentPopupBtn = document.getElementById('add-payment-popup-btn');
+
+    // Buttons
+    const backToWorkersBtn = document.getElementById('back-to-workers-btn');
+    const backToMonthsBtn = document.getElementById('back-to-months-btn');
+    const addWorkerBtn = document.getElementById('add-worker-btn');
+
+    // Modal elements for adding worker
+    const addWorkerModalOverlay = document.getElementById('add-worker-modal-overlay');
+    const addWorkerForm = document.getElementById('add-worker-form');
+    const workerNameInput = document.getElementById('worker-name-input');
+    const workerNumberInput = document.getElementById('worker-number-input');
+    const modalCancelBtnWorker = document.getElementById('modal-cancel-btn-worker');
+    const modalErrorWorker = document.getElementById('modal-error-worker');
+
+    // Modal elements for adding attendance and payment
+    const modalOverlay = document.getElementById('modal-overlay');
+    const addAttendanceForm = document.getElementById('add-attendance-form');
+    const addPaymentForm = document.getElementById('add-payment-form');
+    const modalCancelBtnAttendance = document.getElementById('modal-cancel-btn-attendance');
+    const modalCancelBtnPayment = document.getElementById('modal-cancel-btn-payment');
+    const attendanceDateInput = document.getElementById('attendance-date-input');
+    const attendanceStatusInput = document.getElementById('attendance-status-input');
+    const paymentDateInput = document.getElementById('payment-date-input');
+    const paymentAmountInput = document.getElementById('payment-amount-input');
+    const modalErrorAttendance = document.getElementById('modal-error-attendance');
+    const modalErrorPayment = document.getElementById('modal-error-payment');
+
+    // Attendance and payment summary
+    const totalDaysPresentSpan = document.getElementById('total-days-present');
+    const totalDaysAbsentSpan = document.getElementById('total-days-absent');
+    const totalPaymentPresentSpan = document.getElementById('total-payment-present');
+    const dailyWageInput = document.getElementById('daily-wage');
+    const totalPaidSpan = document.getElementById('total-paid');
+    const totalUnpaidSpan = document.getElementById('total-unpaid');
+
+    // Containers for dates grid
+    const datesGrid = document.getElementById('dates-grid');
+    const paymentDatesGrid = document.getElementById('payment-dates-grid');
+
+    // Keys in localStorage
+    const workersKey = 'contractor_workers_list';
+
+    // State variables
+    let workers = [];
+    let currentWorker = null;  // string worker name
+    let currentYearMonth = null; // "YYYY-MM"
+    let attendanceRecords = {};
+    let paymentRecords = {};
+    let dailyWage = 0;
+
+
+    // Loading and saving workers list
+    function loadWorkers() {
+      try {
+        const raw = localStorage.getItem(workersKey);
+        workers = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(workers)) workers = [];
+      } catch {
+        workers = [];
+      }
+    }
+    function saveWorkers() {
+      localStorage.setItem(workersKey, JSON.stringify(workers));
+    }
+
+    // Attendance and Payment keys for each month for current worker
+    function attendanceKeyFor(worker, ym) {
+      return `contractor_attendance_${worker}_${ym}`;
+    }
+    function paymentKeyFor(worker, ym) {
+      return `contractor_payment_${worker}_${ym}`;
+    }
+
+    // Load records for current worker and month
+    function loadCurrentWorkerMonthRecords() {
+      if (!currentWorker || !currentYearMonth) return;
+      try {
+        const rawAttendance = localStorage.getItem(attendanceKeyFor(currentWorker, currentYearMonth));
+        attendanceRecords = rawAttendance ? JSON.parse(rawAttendance) : {};
+        if (typeof attendanceRecords !== 'object') attendanceRecords = {};
+        const rawPayment = localStorage.getItem(paymentKeyFor(currentWorker, currentYearMonth));
+        paymentRecords = rawPayment ? JSON.parse(rawPayment) : {};
+        if (typeof paymentRecords !== 'object') paymentRecords = {};
+      } catch {
+        attendanceRecords = {};
+        paymentRecords = {};
+      }
+    }
+    function saveAttendanceRecords() {
+      if (!currentWorker || !currentYearMonth) return;
+      localStorage.setItem(attendanceKeyFor(currentWorker, currentYearMonth), JSON.stringify(attendanceRecords));
+    }
+    function savePaymentRecords() {
+      if (!currentWorker || !currentYearMonth) return;
+      localStorage.setItem(paymentKeyFor(currentWorker, currentYearMonth), JSON.stringify(paymentRecords));
+    }
+
+
+// Showconfirm 
+function showConfirm(message, callback) {
+  const modal = document.getElementById("customConfirm");
+  const msg = document.getElementById("confirmMessage");
+  const yes = document.getElementById("confirmYes");
+  const no = document.getElementById("confirmNo");
+
+  msg.textContent = message;
+  modal.classList.remove("hidden");
+
+  const cleanup = () => {
+    modal.classList.add("hidden");
+    yes.onclick = null;
+    no.onclick = null;
+  };
+
+  yes.onclick = () => {
+    cleanup();
+    callback(true);
+  };
+
+  no.onclick = () => {
+    cleanup();
+    callback(false);
+  };
+}
+
+
+// Final version: sorted, editable, mobile validated, search with icon
+function renderWorkerList() {
+  workerListContainer.innerHTML = '';
+  
+  const searchQuery = document.getElementById('worker-search-input')?.value?.toLowerCase() || '';
+const filteredWorkers = workers
+  .slice()
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .filter(w => w.name.toLowerCase().includes(searchQuery));
+
+if (filteredWorkers.length === 0) {
+  const p = document.createElement('p');
+  p.textContent = "No workers found. Click the + button to add one.";
+  p.style.color = '#7f8c8d';
+  p.style.textAlign = 'center';
+  p.style.marginTop = '20px';
+  workerListContainer.appendChild(p);
+  return;
+}
+  filteredWorkers.forEach((worker, index) => {
+  const { name, mobile } = worker; // THIS IS IMPORTANT
+
+    
+    const div = document.createElement('div');
+    div.className = 'worker-item';
+    div.style.border = '1px solid #ddd';
+    div.style.padding = '10px';
+    div.style.marginBottom = '10px';
+    div.style.borderRadius = '6px';
+    div.style.background = '#fff';
+    
+    const nameEl = document.createElement('div');
+    nameEl.className = 'name';
+    nameEl.textContent = `Name: ${name}`;
+    nameEl.style.fontWeight = 'bold';
+    nameEl.style.color = '#000';
+    
+    const mobileEl = document.createElement('div');
+    mobileEl.className = 'Mobile';
+    mobileEl.textContent = mobile ? `Mobile: ${mobile}` : '';
+    mobileEl.style.fontSize = '0.9rem';
+    mobileEl.style.fontWeight = 'bold';
+    mobileEl.style.color = '#555';
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.marginTop = '8px';
+    buttonContainer.style.display = 'flex';
+    
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.innerHTML = '<i class="fas fa-trash-alt"></i><h1>Delete</h1>';
+    delBtn.style.marginRight = '10px';
+  
+    delBtn.onclick = (e) => {
+  e.stopPropagation();
+  showConfirm(`Delete worker "${name}"?`, (confirmed) => {
+    if (confirmed) {
+      const realIndex = workers.findIndex(w => w.name === name);
+      workers.splice(realIndex, 1);
+      deleteAllWorkerData(name);
+      saveWorkers();
+      renderWorkerList();
+    }
+  });
+};
+
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.innerHTML = '<i class="fas fa-edit"></i><h1>Edit</h1>';
+    editBtn.onclick = (e) => {
+  e.stopPropagation();
+
+  const confirmModal = document.getElementById("confirmModal");
+  const confirmMessage = document.getElementById("confirmMessage");
+  const input1 = document.getElementById("confirmInput1"); // Name
+  const input2 = document.getElementById("confirmInput2"); // Mobile
+  const okBtn = document.getElementById("okConfirm");
+  const cancelBtn = document.getElementById("cancelConfirm");
+
+  // Show modal
+  confirmMessage.textContent = `Edit worker "${name}"`;
+  input1.classList.remove("hidden");
+  input2.classList.remove("hidden");
+  input1.placeholder = "Enter new name";
+  input2.placeholder = "Enter 10-digit mobile";
+  input1.value = name;
+  input2.value = mobile;
+  confirmModal.classList.remove("hidden");
+
+  const closeModal = () => {
+    confirmModal.classList.add("hidden");
+    input1.classList.add("hidden");
+    input2.classList.add("hidden");
+    input1.value = "";
+    input2.value = "";
+    okBtn.onclick = null;
+    cancelBtn.onclick = null;
+  };
+
+  cancelBtn.onclick = closeModal;
+
+  okBtn.onclick = () => {
+    const newName = input1.value.trim();
+    const newMobile = input2.value.trim();
+
+    if (!newName || !/^[0-9]{10}$/.test(newMobile)) {
+      alert("Invalid input. Name required and mobile must be 10 digits.");
+      return;
+    }
+
+    const duplicate = workers.some((w, i) => i !== index && w.name.toLowerCase() === newName.toLowerCase());
+    if (duplicate) {
+      alert("Name already exists.");
+      return;
+    }
+
+    workers[index].name = newName;
+    workers[index].mobile = newMobile;
+    renameWorkerData(name, newName);
+    saveWorkers();
+    
+    renderWorkerList();
+    closeModal();
+  };
+};
+    
+    buttonContainer.appendChild(delBtn);
+    buttonContainer.appendChild(editBtn);
+    
+    div.appendChild(nameEl);
+    div.appendChild(mobileEl);
+    div.appendChild(buttonContainer);
+    
+    div.addEventListener('click', () => openMonthSelection(name));
+    
+    workerListContainer.appendChild(div);
+  });
+}
+
+// Add search bar once
+if (!document.getElementById('worker-search-input')) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'search-bar-wrapper';
+
+  const icon = document.createElement('i');
+  icon.className = 'fas fa-search search-icon';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Search workers...';
+  input.id = 'worker-search-input';
+  input.className = 'search-input';
+
+  input.addEventListener('input', renderWorkerList);
+
+  wrapper.appendChild(icon);
+  wrapper.appendChild(input);
+  document.getElementById('worker-list-section')?.prepend(wrapper);
+}
+
+    function deleteAllWorkerData(workerName) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key.startsWith(`contractor_attendance_${workerName}_`) || key.startsWith(`contractor_payment_${workerName}_`)) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+
+
+function renameWorkerData(oldName, newName) {
+  const keysToUpdate = [];
+
+  // Collect relevant keys
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (
+      key.startsWith(`contractor_attendance_${oldName}_`) ||
+      key.startsWith(`contractor_payment_${oldName}_`) ||
+      key === `contractor_months_${oldName}`
+    ) {
+      keysToUpdate.push(key);
+    }
+  }
+
+  // Rename keys
+  keysToUpdate.forEach(oldKey => {
+    const value = localStorage.getItem(oldKey);
+    const newKey = oldKey.replace(oldName, newName);
+    localStorage.setItem(newKey, value);
+    localStorage.removeItem(oldKey);
+  });
+}
+
+
+
+
+    // Show worker list
+    function showWorkerList() {
+      currentWorker = null;
+      currentYearMonth = null;
+      mainHeader.classList.remove('hidden');
+      workerListSection.style.display = '';
+      monthSelectionSection.classList.remove('active');
+      workerDetailSection.classList.remove('active');
+      clearMessages();
+      addWorkerBtn.style.display = '';
+      addMonthBtn.style.display = 'none';
+      monthList.innerHTML = '';
+    }
+
+    // Show month selection for worker
+    function openMonthSelection(workerName) {
+      currentWorker = workerName;
+      currentYearMonth = null;
+      mainHeader.classList.add('hidden');
+      workerListSection.style.display = 'none';
+      monthSelectionSection.classList.add('active');
+      workerDetailSection.classList.remove('active');
+      monthWorkerName.textContent = workerName;
+      addWorkerBtn.style.display = 'none';
+      addMonthBtn.style.display = '';
+      renderMonthList();
+    }
+
+    // Render last 12 months
+    function monthsKeyFor(worker) {
+  return `contractor_months_${worker}`;
+}
+
+function loadWorkerMonths(worker) {
+  try {
+    const raw = localStorage.getItem(monthsKeyFor(worker));
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveWorkerMonths(worker, monthList) {
+  localStorage.setItem(monthsKeyFor(worker), JSON.stringify(monthList));
+}
+
+function showCustomConfirm(message, onConfirm) {
+  const modal = document.getElementById('customConfirm');
+  const msg = document.getElementById('confirmMessage');
+  const yesBtn = document.getElementById('confirmYes');
+  const noBtn = document.getElementById('confirmNo');
+
+  msg.textContent = message;
+  modal.classList.remove('hidden');
+
+  const close = () => {
+    modal.classList.add('hidden');
+    yesBtn.onclick = null;
+    noBtn.onclick = null;
+  };
+
+  noBtn.onclick = close;
+  yesBtn.onclick = () => {
+    close();
+    onConfirm();
+  };
+}
+
+
+
+function renderMonthList() {
+  monthList.innerHTML = '';
+  const workerMonths = loadWorkerMonths(currentWorker);
+
+  if (workerMonths.length === 0) {
+    const p = document.createElement('p');
+    p.textContent = 'No months added. Use + button to add a month.';
+    p.style.textAlign = 'center';
+    p.style.color = '#888';
+    p.style.marginTop = '20px';
+    monthList.appendChild(p);
+    return;
+  }
+
+  workerMonths
+    .sort()
+    .reverse()
+    .forEach((ym, index) => {
+      const dt = new Date(ym + '-01');
+      const monthDisplay = dt.toLocaleString(undefined, { month: 'short', year: 'numeric' });
+
+      const div = document.createElement('div');
+      div.className = 'month-item';
+      div.setAttribute('role', 'listitem');
+      div.setAttribute('tabindex', '0');
+
+      const label = document.createElement('span');
+      label.textContent = monthDisplay;
+      label.style.flex = '1';
+
+      const delBtn = document.createElement('button');
+      delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+      delBtn.className = 'delete-btn';
+      delBtn.title = 'Delete month';
+delBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  showCustomConfirm(`Delete month "${monthDisplay}"?`, () => {
+    workerMonths.splice(index, 1);
+    saveWorkerMonths(currentWorker, workerMonths);
+    renderMonthList();
+    localStorage.removeItem(attendanceKeyFor(currentWorker, ym));
+    localStorage.removeItem(paymentKeyFor(currentWorker, ym));
+  });
+});
+
+
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.marginLeft = 'auto';
+      buttonContainer.appendChild(delBtn);
+
+      div.style.display = 'flex';
+      div.style.alignItems = 'center';
+      div.style.justifyContent = 'space-between';
+
+      div.appendChild(label);
+      div.appendChild(buttonContainer);
+
+      div.addEventListener('click', () => openWorkerDetail(currentWorker, ym, monthDisplay));
+      div.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openWorkerDetail(currentWorker, ym, monthDisplay);
+        }
+      });
+
+      monthList.appendChild(div);
+    });
+}
+
+
+
+    function formatYearMonth(date) {
+      const y = date.getFullYear();
+      const m = (date.getMonth() + 1).toString().padStart(2,'0');
+      return `${y}-${m}`;
+    }
+
+    function openWorkerDetail(workerName, yearMonth, monthDisplay) {
+      if (!workerName || !yearMonth) return;
+      currentWorker = workerName;
+      currentYearMonth = yearMonth;
+      mainHeader.classList.add('hidden');
+      workerListSection.style.display = 'none';
+      monthSelectionSection.classList.remove('active');
+      workerDetailSection.classList.add('active');
+      workerNameHeading.textContent = workerName;
+      monthLabel.textContent = monthDisplay;
+      clearMessages();
+      loadCurrentWorkerMonthRecords();
+      generateDatesGrid(yearMonth);
+      refreshPaymentGrid();
+      refreshAttendanceGrid();
+      updateAttendanceSummary();
+      updatePaymentSummary();
+      setActiveTab('attendance');
+    }
+
+    function clearMessages() {
+      modalErrorWorker.textContent = '';
+      modalErrorAttendance.textContent = '';
+      modalErrorPayment.textContent = '';
+      // No other messages implemented currently
+    }
+
+    // Generate date grids for attendance and payment
+    function generateDatesGrid(yearMonth) {
+      const firstDate = new Date(`${yearMonth}-01`);
+      const lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 0);
+      const daysInMonth = lastDate.getDate();
+      datesGrid.innerHTML = '';
+      paymentDatesGrid.innerHTML = '';
+    }
+
+function refreshAttendanceGrid() {
+  const existingDates = new Set(
+    Array.from(datesGrid.querySelectorAll('.date-box')).map(box => {
+      return `${currentYearMonth}-${box.querySelector('.date-label').textContent.padStart(2, '0')}`;
+    })
+  );
+
+  Object.entries(attendanceRecords).forEach(([dateStr, status]) => {
+    if (!dateStr.startsWith(currentYearMonth)) return;
+
+    if (!existingDates.has(dateStr)) {
+      const day = parseInt(dateStr.split('-')[2]);
+
+      // Create new dateBox
+      const dateBox = document.createElement('div');
+      dateBox.className = 'date-box';
+      dateBox.setAttribute('tabindex', '0');
+
+      const label = document.createElement('div');
+      label.className = 'date-label';
+      label.textContent = day;
+      dateBox.appendChild(label);
+
+      const statusDiv = document.createElement('div');
+      statusDiv.className = 'status-indicator';
+
+      const presentBtn = document.createElement('div');
+      presentBtn.className = 'status-button present';
+      presentBtn.textContent = 'Present';
+
+      const absentBtn = document.createElement('div');
+      absentBtn.className = 'status-button absent';
+      absentBtn.textContent = 'Absent';
+
+      // Mark selected class
+      presentBtn.classList.toggle('selected', status === 'Present');
+      absentBtn.classList.toggle('selected', status === 'Absent');
+
+      // Add click handlers
+      presentBtn.addEventListener('click', () => {
+        attendanceRecords[dateStr] = 'Present';
+        saveAttendanceRecords();
+        updateAttendanceSummary();
+        refreshAttendanceGrid();
+        updatePaymentSummary();
+      });
+
+      absentBtn.addEventListener('click', () => {
+        attendanceRecords[dateStr] = 'Absent';
+        saveAttendanceRecords();
+        updateAttendanceSummary();
+        refreshAttendanceGrid();
+        updatePaymentSummary();
+      });
+
+      statusDiv.appendChild(presentBtn);
+      statusDiv.appendChild(absentBtn);
+      dateBox.appendChild(statusDiv);
+      datesGrid.appendChild(dateBox);
+    } else {
+      // Just update class if already exists
+      const day = dateStr.split('-')[2];
+      const box = Array.from(datesGrid.querySelectorAll('.date-box')).find(b =>
+        b.querySelector('.date-label').textContent === String(parseInt(day))
+      );
+
+      if (box) {
+        const presentBtn = box.querySelector('.status-button.present');
+        const absentBtn = box.querySelector('.status-button.absent');
+
+        presentBtn.classList.toggle('selected', status === 'Present');
+        absentBtn.classList.toggle('selected', status === 'Absent');
+      }
+    }
+  });
+}
+
+
+    // Update attendance summary
+    function updateAttendanceSummary() {
+      let presentCount = 0;
+      let absentCount = 0;
+      for (const status of Object.values(attendanceRecords)) {
+        if (status === 'Present') presentCount++;
+        else if (status === 'Absent') absentCount++;
+      }
+      totalDaysPresentSpan.textContent = presentCount;
+      totalDaysAbsentSpan.textContent = absentCount;
+    }
+
+    // Update payment summary
+    function updatePaymentSummary() {
+      dailyWage = Number(dailyWageInput.value) || 0;
+      const presentDays = Number(totalDaysPresentSpan.textContent) || 0;
+      totalPaymentPresentSpan.textContent = presentDays;
+      let totalPaid = 0;
+      for (const amount of Object.values(paymentRecords)) {
+        totalPaid += Number(amount);
+      }
+      const totalExpected = dailyWage * presentDays;
+      totalPaidSpan.textContent = totalPaid.toFixed(2);
+      const unpaid = Math.max(0, totalExpected - totalPaid);
+      totalUnpaidSpan.textContent = unpaid.toFixed(2);
+    }
+
+    // Tab handling
+    function setActiveTab(tabName) {
+      if (tabName === 'attendance') {
+        tabAttendance.classList.add('active');
+        tabAttendance.setAttribute('aria-selected', 'true');
+        tabAttendance.setAttribute('tabindex', '0');
+        tabPayment.classList.remove('active');
+        tabPayment.setAttribute('aria-selected', 'false');
+        tabPayment.setAttribute('tabindex', '-1');
+        attendanceSection.classList.add('active');
+        paymentSection.classList.remove('active');
+      } else if (tabName === 'payment') {
+        tabPayment.classList.add('active');
+        tabPayment.setAttribute('aria-selected', 'true');
+        tabPayment.setAttribute('tabindex', '0');
+        tabAttendance.classList.remove('active');
+        tabAttendance.setAttribute('aria-selected', 'false');
+        tabAttendance.setAttribute('tabindex', '-1');
+        paymentSection.classList.add('active');
+        attendanceSection.classList.remove('active');
+      }
+    }
+    tabAttendance.addEventListener('click', () => setActiveTab('attendance'));
+    tabPayment.addEventListener('click', () => setActiveTab('payment'));
+
+    // Navigation buttons
+    backToWorkersBtn.addEventListener('click', () => {
+      showWorkerList();
+    });
+    backToMonthsBtn.addEventListener('click', () => {
+      openMonthSelection(currentWorker);
+    });
+
+// Month modal elements
+const addMonthBtn = document.getElementById('add-month-btn');
+const addMonthModalOverlay = document.getElementById('addMonthModalOverlay');
+const monthInput = document.getElementById('monthInput');
+const modalErrorMonth = document.getElementById('modalErrorMonth');
+const confirmAddMonth = document.getElementById('confirmAddMonth');
+const cancelAddMonth = document.getElementById('cancelAddMonth');
+
+// Add Month Button (show popup)
+addMonthBtn?.addEventListener('click', () => {
+  addMonthModalOverlay.classList.add('active');
+  monthInput.value = '';
+  modalErrorMonth.textContent = '';
+  monthInput.focus();
+});
+
+// Cancel Button
+cancelAddMonth?.addEventListener('click', () => {
+  addMonthModalOverlay.classList.remove('active');
+});
+
+// Confirm/Save Button
+confirmAddMonth.addEventListener('click', () => {
+  const selectedMonth = monthInput.value.trim(); // format: "YYYY-MM"
+
+  if (!selectedMonth) {
+    modalErrorMonth.textContent = 'Please select a valid month.';
+    return;
+  }
+
+  const workerMonths = loadWorkerMonths(currentWorker);
+  if (workerMonths.includes(selectedMonth)) {
+    modalErrorMonth.textContent = 'Month already exists.';
+    return;
+  }
+
+  workerMonths.push(selectedMonth);
+  saveWorkerMonths(currentWorker, workerMonths);
+  renderMonthList(); // re-render the list
+  addMonthModalOverlay.classList.remove('active');
+});
+
+
+
+    // Add worker popup control
+    addWorkerBtn.addEventListener('click', () => {
+      addWorkerModalOverlay.classList.add('active');
+      workerNameInput.value = '';
+      workerNumberInput.value = '';
+      modalErrorWorker.textContent = '';
+      workerNameInput.focus();
+      workerNumberInput.focus();
+    });
+    
+    modalCancelBtnWorker.addEventListener('click', () => {
+      addWorkerModalOverlay.classList.remove('active');
+      modalErrorWorker.textContent = '';
+    });
+    addWorkerModalOverlay.addEventListener('click', e => {
+      if (e.target === addWorkerModalOverlay) {
+        addWorkerModalOverlay.classList.remove('active');
+        modalErrorWorker.textContent = '';
+      }
+    });
+    addWorkerModalOverlay.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        addWorkerModalOverlay.classList.remove('active');
+        modalErrorWorker.textContent = '';
+      }
+    });
+
+    // Add worker form submit
+    addWorkerForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const name = workerNameInput.value.trim();
+      const mobile = workerNumberInput.value.trim();
+      if (name.length === 0) {
+        modalErrorWorker.textContent = 'Worker name cannot be empty.';
+        workerNameInput.focus();
+        workerNumberInput.focus();
+        return;
+      }
+      if (workers.includes(name)) {
+        modalErrorWorker.textContent = `Worker "${name}" already exists.`;
+        workerNameInput.focus();
+        workerNumberInput.focus();
+        return;
+      }
+      workers.push({name, mobile});
+      saveWorkers();
+      
+      addWorkerModalOverlay.classList.remove('active');
+      renderWorkerList();
+    });
+
+    // Daily wage input update
+    dailyWageInput.addEventListener('input', () => {
+      updatePaymentSummary();
+    });
+
+    // Attendance pop-up handlers
+    addAttendancePopupBtn.addEventListener('click', () => openAttendanceModal());
+    modalCancelBtnAttendance.addEventListener('click', () => closeModal());
+    addAttendanceForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = attendanceDateInput.value;
+      const status = attendanceStatusInput.value;
+      if (!date || !status) {
+        modalErrorAttendance.textContent = 'Please fill in all fields.';
+        return;
+      }
+      if (!date.startsWith(currentYearMonth)) {
+        modalErrorAttendance.textContent = 'Date must be within selected month.';
+        return;
+      }
+      attendanceRecords[date] = status;
+      saveAttendanceRecords();
+      updateAttendanceSummary();
+      refreshAttendanceGrid();
+      updatePaymentSummary();
+      closeModal();
+    });
+
+    // Payment pop-up handlers
+    addPaymentPopupBtn.addEventListener('click', () => openPaymentModal());
+    modalCancelBtnPayment.addEventListener('click', () => closeModal());
+    addPaymentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = paymentDateInput.value;
+      const amount = paymentAmountInput.value;
+      if (!date || amount === '') {
+        modalErrorPayment.textContent = 'Please fill in all fields.';
+        return;
+      }
+      if (!date.startsWith(currentYearMonth)) {
+        modalErrorPayment.textContent = 'Date must be within selected month.';
+        return;
+      }
+      if (Number(amount) < 0 || isNaN(Number(amount))) {
+        modalErrorPayment.textContent = 'Invalid payment amount.';
+        return;
+      }
+      paymentRecords[date] = Number(amount);
+      savePaymentRecords();
+      updatePaymentSummary();
+      refreshPaymentGrid();
+      closeModal();
+    });
+
+    // Modal open/close helpers
+    function openAttendanceModal() {
+      modalOverlay.classList.add('active');
+      addAttendanceForm.style.display = 'block';
+      addPaymentForm.style.display = 'none';
+      modalErrorAttendance.textContent = '';
+      attendanceDateInput.value = '';
+      attendanceStatusInput.value = '';
+      attendanceDateInput.setAttribute('min', getMonthStart());
+      attendanceDateInput.setAttribute('max', getMonthEnd());
+      attendanceDateInput.focus();
+    }
+    function openPaymentModal() {
+      modalOverlay.classList.add('active');
+      addPaymentForm.style.display = 'block';
+      addAttendanceForm.style.display = 'none';
+      modalErrorPayment.textContent = '';
+      paymentDateInput.value = '';
+      paymentAmountInput.value = '';
+      paymentDateInput.setAttribute('min', getMonthStart());
+      paymentDateInput.setAttribute('max', getMonthEnd());
+      paymentDateInput.focus();
+    }
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+      modalErrorAttendance.textContent = '';
+      modalErrorPayment.textContent = '';
+    }
+
+    // Helpers to get month start/end in YYYY-MM-DD format
+    function getMonthStart() {
+      return `${currentYearMonth}-01`;
+    }
+    function getMonthEnd() {
+      const [year, month] = currentYearMonth.split('-').map(Number);
+      const lastDay = new Date(year, month, 0).getDate();
+      return `${currentYearMonth}-${lastDay.toString().padStart(2,'0')}`;
+    } 
+    // Refresh payment grid inputs values
+function refreshPaymentGrid() {
+  paymentDatesGrid.innerHTML = ''; // 🧹 Clear grid
+
+  Object.entries(paymentRecords).forEach(([dateStr, value]) => {
+    if (!dateStr.startsWith(currentYearMonth)) return;
+
+    const day = parseInt(dateStr.split('-')[2]);
+
+    const dateBox = document.createElement('div');
+    dateBox.className = 'date-box';
+    dateBox.setAttribute('tabindex', '0');
+
+    const label = document.createElement('div');
+    label.className = 'date-label';
+    label.textContent = day;
+    dateBox.appendChild(label);
+
+    if (value !== undefined && value !== '') {
+      // ✅ Show styled ₹ box
+      const amountBox = document.createElement('div');
+      amountBox.className = 'payment-amount-box';
+      amountBox.textContent = `₹${value}`;
+      dateBox.appendChild(amountBox);
+    }
+
+    paymentDatesGrid.appendChild(dateBox);
+  });
+}
+
+// LOGIN / REGISTRATION LOGIC
+const authContainer = document.getElementById("auth-container");
+const appContainer = document.getElementById("app-container");
+const loginForm = document.getElementById("login-form");
+const registerForm = document.getElementById("register-form");
+const loginError = document.getElementById("login-error");
+
+// Auto-login check
+if (localStorage.getItem("loggedIn") === "true") {
+  authContainer.style.display = "none";
+  appContainer.style.display = "block";
+} else {
+  authContainer.style.display = "block";
+  appContainer.style.display = "none";
+}
+
+// Handle Login
+loginForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  const enteredUsername = document.getElementById("login-username").value.trim();
+  const enteredPassword = document.getElementById("login-password").value.trim();
+  const savedUsername = localStorage.getItem("user_username");
+  const savedPassword = localStorage.getItem("user_password");
+
+  if (enteredUsername === savedUsername && enteredPassword === savedPassword) {
+    localStorage.setItem("loggedIn", "true");
+    loginError.style.display = "none";
+    location.reload();
+  } else {
+    loginError.style.display = "block";
+  }
+});
+
+// Handle Registration
+registerForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  localStorage.setItem("user_name", document.getElementById("reg-name").value.trim());
+  localStorage.setItem("user_mobile", document.getElementById("reg-mobile").value.trim());
+  localStorage.setItem("user_username", document.getElementById("reg-username").value.trim());
+  localStorage.setItem("user_password", document.getElementById("reg-password").value.trim());
+  localStorage.setItem("user_email", document.getElementById("reg-email").value.trim());
+  localStorage.setItem("loggedIn", "true");
+  location.reload();
+});
+
+// Switch to Register
+document.getElementById("go-to-register").addEventListener("click", function (e) {
+  e.preventDefault();
+  loginForm.style.display = "none";
+  registerForm.style.display = "block";
+  loginError.style.display = "none";
+});
+
+// Switch to Login
+document.getElementById("go-to-login").addEventListener("click", function (e) {
+  e.preventDefault();
+  registerForm.style.display = "none";
+  loginForm.style.display = "block";
+  loginError.style.display = "none";
+});
+
+
+    // Initialize app
+    function initApp() {
+      loadWorkers();
+      renderWorkerList();
+      showWorkerList();
+    }
+    initApp();
+  })();
+</script>
+</body>
+</html>
