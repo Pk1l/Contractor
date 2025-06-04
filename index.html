@@ -6,6 +6,21 @@
 <title>Civil Contractor Worker Management</title>
 <!-- Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAjZLi2WEWvWPTgznXrUIkrrM2sXhTUHdU",
+    authDomain: "contractor-fe104.firebaseapp.com",
+    projectId: "contractor-fe104",
+    storageBucket: "contractor-fe104.firebasestorage.app",
+    messagingSenderId: "455350824504",
+    appId: "1:455350824504:web:96d516956cf7c9b290c0cd",
+    measurementId: "G-QJ90WKKET9"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  </script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
   /* Reset & base */
@@ -1201,50 +1216,56 @@ font-weight: 600;">Register</button>
 
 
     // Loading and saving workers list
-    function loadWorkers() {
-      try {
-        const raw = localStorage.getItem(workersKey);
-        workers = raw ? JSON.parse(raw) : [];
-        if (!Array.isArray(workers)) workers = [];
-      } catch {
-        workers = [];
-      }
-    }
-    function saveWorkers() {
-      localStorage.setItem(workersKey, JSON.stringify(workers));
-    }
+    const currentUser = sessionStorage.getItem("username");
+
+function loadWorkers() {
+  firebase.database().ref(`users/${currentUser}/workers`).once("value")
+    .then(snapshot => {
+      workers = snapshot.val() || [];
+      renderWorkerList(); // Update your UI
+    });
+}
+
+function saveWorkers() {
+  firebase.database().ref(`users/${currentUser}/workers`).set(workers);
+}
 
     // Attendance and Payment keys for each month for current worker
     function attendanceKeyFor(worker, ym) {
-      return `contractor_attendance_${worker}_${ym}`;
-    }
-    function paymentKeyFor(worker, ym) {
-      return `contractor_payment_${worker}_${ym}`;
-    }
+  return `users/${currentUser}/attendance/${worker}/${ym}`;
+}
+
+function paymentKeyFor(worker, ym) {
+  return `users/${currentUser}/payments/${worker}/${ym}`;
+}
+
 
     // Load records for current worker and month
-    function loadCurrentWorkerMonthRecords() {
-      if (!currentWorker || !currentYearMonth) return;
-      try {
-        const rawAttendance = localStorage.getItem(attendanceKeyFor(currentWorker, currentYearMonth));
-        attendanceRecords = rawAttendance ? JSON.parse(rawAttendance) : {};
-        if (typeof attendanceRecords !== 'object') attendanceRecords = {};
-        const rawPayment = localStorage.getItem(paymentKeyFor(currentWorker, currentYearMonth));
-        paymentRecords = rawPayment ? JSON.parse(rawPayment) : {};
-        if (typeof paymentRecords !== 'object') paymentRecords = {};
-      } catch {
-        attendanceRecords = {};
-        paymentRecords = {};
-      }
-    }
-    function saveAttendanceRecords() {
-      if (!currentWorker || !currentYearMonth) return;
-      localStorage.setItem(attendanceKeyFor(currentWorker, currentYearMonth), JSON.stringify(attendanceRecords));
-    }
-    function savePaymentRecords() {
-      if (!currentWorker || !currentYearMonth) return;
-      localStorage.setItem(paymentKeyFor(currentWorker, currentYearMonth), JSON.stringify(paymentRecords));
-    }
+function loadCurrentWorkerMonthRecords(callback) {
+  if (!currentWorker || !currentYearMonth) return;
+
+  firebase.database().ref(attendanceKeyFor(currentWorker, currentYearMonth)).once("value")
+    .then(snapshot => {
+      attendanceRecords = snapshot.val() || {};
+    });
+
+  firebase.database().ref(paymentKeyFor(currentWorker, currentYearMonth)).once("value")
+    .then(snapshot => {
+      paymentRecords = snapshot.val() || {};
+      if (callback) callback(); // optional to trigger render after load
+    });
+}
+
+
+function saveAttendanceRecords() {
+  if (!currentWorker || !currentYearMonth) return;
+  firebase.database().ref(attendanceKeyFor(currentWorker, currentYearMonth)).set(attendanceRecords);
+}
+
+function savePaymentRecords() {
+  if (!currentWorker || !currentYearMonth) return;
+  firebase.database().ref(paymentKeyFor(currentWorker, currentYearMonth)).set(paymentRecords);
+}
 
 
 // Showconfirm 
@@ -2020,7 +2041,7 @@ const registerForm = document.getElementById("register-form");
 const loginError = document.getElementById("login-error");
 
 // Auto-login check
-if (localStorage.getItem("loggedIn") === "true") {
+if (sessionStorage.getItem("loggedIn") === "true") {
   authContainer.style.display = "none";
   appContainer.style.display = "block";
 } else {
@@ -2033,28 +2054,49 @@ loginForm.addEventListener("submit", function (e) {
   e.preventDefault();
   const enteredUsername = document.getElementById("login-username").value.trim();
   const enteredPassword = document.getElementById("login-password").value.trim();
-  const savedUsername = localStorage.getItem("user_username");
-  const savedPassword = localStorage.getItem("user_password");
 
-  if (enteredUsername === savedUsername && enteredPassword === savedPassword) {
-    localStorage.setItem("loggedIn", "true");
-    loginError.style.display = "none";
-    location.reload();
-  } else {
-    loginError.style.display = "block";
-  }
+  firebase.database().ref("users/" + enteredUsername).once("value")
+    .then(snapshot => {
+      const user = snapshot.val();
+      if (user && user.password === enteredPassword) {
+        // Save session login
+        sessionStorage.setItem("loggedIn", "true");
+        sessionStorage.setItem("username", enteredUsername);
+
+        // Show app UI
+        loginError.style.display = "none";
+        authContainer.style.display = "none";
+        appContainer.style.display = "block";
+
+        // Optionally reload
+        // location.reload();
+      } else {
+        loginError.style.display = "block";
+      }
+    })
+    .catch(error => {
+      console.error("Login failed:", error);
+      loginError.style.display = "block";
+    });
 });
+
 
 // Handle Registration
 registerForm.addEventListener("submit", function (e) {
   e.preventDefault();
-  localStorage.setItem("user_name", document.getElementById("reg-name").value.trim());
-  localStorage.setItem("user_mobile", document.getElementById("reg-mobile").value.trim());
-  localStorage.setItem("user_username", document.getElementById("reg-username").value.trim());
-  localStorage.setItem("user_password", document.getElementById("reg-password").value.trim());
-  localStorage.setItem("user_email", document.getElementById("reg-email").value.trim());
-  localStorage.setItem("loggedIn", "true");
-  location.reload();
+  const username = document.getElementById("reg-username").value.trim();
+  const password = document.getElementById("reg-password").value.trim();
+  const name = document.getElementById("reg-name").value.trim();
+  const mobile = document.getElementById("reg-mobile").value.trim();
+  const email = document.getElementById("reg-email").value.trim();
+
+  firebase.database().ref("users/" + username).set({
+    name, mobile, email, password
+  }).then(() => {
+    sessionStorage.setItem("loggedIn", "true");
+    sessionStorage.setItem("username", username);
+    location.reload();
+  });
 });
 
 // Switch to Register
