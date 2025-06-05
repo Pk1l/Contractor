@@ -967,4 +967,1420 @@ input:valid~label {
             <input type="email" id="reg-email" required />
             <label>Email</label>
           </div>
-          <button type="submit" style="width: 100%; height:
+          <button type="submit" style="width: 100%; height: 40px; border-radius: 40px; background: #94FFED; border: none; outline: none; cursor: pointer; font-size: 1em; font-weight: 600;">Register</button>
+          <div class="register">
+            <p>Already have an account? <a href="#" id="go-to-login">Login</a></p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>
+
+  
+<div id="app-container" style="display: none;">
+<header id="main-header" style="display: flex; justify-content: space-between; align-items: center;">
+  <span>Worker Management</span>
+
+  <!-- Menu Button -->
+  <div style="position: relative;">
+    <button id="menu-toggle" style="background: none; border: none; color: white; font-size: 1.6rem; cursor: pointer;">
+      <i class="fas fa-ellipsis-v"></i>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div id="dropdown-menu" style="display: none; position: absolute; top: 40px; right: 0; background: white; color: #2c3e50; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); width: 180px; z-index: 1000;">
+      <button id="toggle-dark-mode" style="padding: 10px 14px; width: 100%; background: none; border: none; text-align: left; cursor: pointer;">
+        <i class="fas fa-moon"></i> Dark Mode
+      </button>
+      <button onclick="logout()" style="padding: 10px 14px; width: 100%; background: none; border: none; text-align: left; cursor: pointer;">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </div>
+</header>
+
+  <!-- Worker List Page -->
+  <section id="worker-list-section" aria-label="Worker list">
+    <div id="worker-list" role="list" aria-live="polite" aria-relevant="additions">
+      <!-- Worker items inserted here -->
+    </div>
+  </section>
+
+  <!-- Month Selection for the Current Worker -->
+  <section id="month-selection" aria-label="Select month for worker activity">
+    <header id="month-header">
+      <button id="back-to-workers-btn" aria-label="Back to worker list" title="Back to worker list"><i class="fas fa-arrow-left"></i></button>
+      <div id="month-worker-name" style="font-weight: 700; font-size: 1.5rem; user-select:none;"></div>
+    </header>
+    <div id="month-list" role="list" aria-label="Select a month">
+      <!-- Months listed here -->
+    </div>
+  </section>
+
+  <!-- Worker Detail Page (Attendance and Payment for selected month) -->
+  <section id="worker-detail" aria-label="Worker attendance and payment details" aria-live="polite">
+    <header id="worker-detail-header">
+      <button id="back-to-months-btn" aria-label="Back to month selection" title="Back to months list"><i class="fas fa-arrow-left"></i></button>
+      <div id="worker-name-heading" style="user-select:none;"></div>
+      <div id="month-label" style="margin-left:auto; font-weight: 700; font-size: 1.15rem; color:#555; user-select:none;"></div>
+    </header>
+    <nav id="tabs" role="tablist" aria-label="Attendance and Payment Tabs">
+      <button type="button" id="tab-attendance" class="active" role="tab" aria-selected="true" aria-controls="attendance-section" tabindex="0">
+        Attendance <i class="fas fa-plus-circle" id="add-attendance-popup-btn" title="Add Attendance" style="margin-left: 8px; cursor: pointer; color: #2980b9;"></i>
+      </button>
+      <button type="button" id="tab-payment" role="tab" aria-selected="false" aria-controls="payment-section" tabindex="-1">
+        Payment <i class="fas fa-plus-circle" id="add-payment-popup-btn" title="Add Payment" style="margin-left: 8px; cursor: pointer; color: #2980b9;"></i>
+      </button>
+    </nav>
+
+
+
+    <!-- Attendance Section -->
+    <section id="attendance-section" class="tab-section active" role="tabpanel" tabindex="0" aria-labelledby="tab-attendance">
+      <div id="attendance-summary" style="justify-content: space-between; padding: 0px;">
+        <div class="summary-item">Present
+          <span id="total-days-present">0</span>
+        </div>
+        <div class="summary-item">Absent
+          <span id="total-days-absent">0</span>
+        </div>
+      </div>
+      <div id="dates-container">
+        <div id="dates-grid" tabindex="0" aria-label="Attendance dates grid" style="margin-top: 10px;">
+          <!-- Date boxes dynamically generated -->
+        </div>
+      </div>
+      <div id="attendance-container"></div>
+    </section>
+
+    <!-- Payment Section -->
+    <section id="payment-section" class="tab-section" role="tabpanel" tabindex="0" aria-labelledby="tab-payment">
+      <div class="summary-payment-item" id="payment-summary" style="flex-direction: column; display: flex; gap:10px;">
+        <div style="width: max-content;">
+          Total Present Days:-  <span id="total-payment-present" style="font-size: 1.7rem; color: #2165a9;">0</span>
+        </div>
+        <div  style="width: max-content;">
+          Paid: ₹<span id="total-paid" style="font-size: 1.7rem; color: #2165a9;">0</span>
+        </div>
+        <div style="width: max-content;">
+            Unpaid: ₹<span id="total-unpaid" style="font-size: 1.7rem; color: #2165a9;">0</span>
+        </div>
+      <div id="daily-wage-container"  style="width: max-content;">
+          Daily Wage (₹)
+          <input type="number" id="daily-wage" min="0" step="1" value="0" aria-label="Daily wage input" style="font-size: 1.7rem; color: #2165a9;" />
+        </div>
+      </div>
+      <div id="payment-dates-container">
+        <div id="payment-dates-grid" tabindex="0" aria-label="Payment dates grid" style="margin-top: 10px;">
+          <!-- Payment date boxes dynamically generated -->
+        </div>
+      </div>
+      <div id="payment-container"></div>
+    </section>
+  </section>
+
+  <!-- Modals for adding attendance and payment records -->
+  <div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" tabindex="-1">
+    <div class="modal" role="document">
+      <h3 id="modal-title">Add Attendance Record</h3>
+      <form id="add-attendance-form" style="display:none;">
+        <label for="attendance-date-input">Date:</label>
+        <input type="date" id="attendance-date-input" name="attendance-date-input" required autocomplete="off" aria-required="true" />
+        <label for="attendance-status-input">Status:</label>
+        <select id="attendance-status-input" name="attendance-status-input" required>
+          <option value="" disabled selected>-- Select --</option>
+          <option value="Present">Present</option>
+          <option value="Absent">Absent</option>
+        </select>
+        <div class="btns" style="margin-top:10px; display: flex; justify-content: flex-end; gap: 16px;">
+          <button type="button" class="cancel-btn" id="modal-cancel-btn-attendance"><i class="fas fa-times"></i> Cancel</button>
+          <button type="submit" class="save-btn"><i class="fas fa-check"></i> Add</button>
+        </div>
+        <p id="modal-error-attendance" class="error" aria-live="polite"></p>
+      </form>
+
+      <form id="add-payment-form" style="display:none;">
+        <label for="payment-date-input">Date:</label>
+        <input type="date" id="payment-date-input" name="payment-date-input" required autocomplete="off" aria-required="true" />
+        <label for="payment-amount-input">Amount (₹):</label>
+        <input type="number" id="payment-amount-input" name="payment-amount-input" min="0" step="0.01" required />
+        <div class="btns" style="margin-top:10px; display: flex; justify-content: flex-end; gap: 16px;">
+          <button type="button" class="cancel-btn" id="modal-cancel-btn-payment"><i class="fas fa-times"></i> Cancel</button>
+          <button type="submit" class="save-btn"><i class="fas fa-check"></i> Add</button>
+        </div>
+        <p id="modal-error-payment" class="error" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Worker Modal -->
+  <div id="add-worker-modal-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="add-worker-modal-title" aria-describedby="add-worker-modal-desc" tabindex="-1">
+    <div class="modal" role="document">
+      <h3 id="add-worker-modal-title">Add New Worker</h3>
+      <form id="add-worker-form">
+        <label for="worker-name-input">Worker Name</label>
+        <input type="text" id="worker-name-input" name="worker-name-input" required autocomplete="off" aria-required="true" />
+        <label for="worker-number-input">Mobile No.</label>
+        <input type="number" id="worker-number-input" name="worker-number-input" required autocomplete="off" aria-required="true" />
+        <div class="btns">
+          <button type="button" class="cancel-btn" id="modal-cancel-btn-worker"><i class="fas fa-times"></i> Cancel</button>
+          <button type="submit" class="save-btn"><i class="fas fa-check"></i> Add</button>
+        </div>
+        <p id="modal-error-worker" class="error" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+  
+  
+  
+<!-- Confirm/Edit Modal -->
+<div id="confirmModal" class="modal1 hidden">
+  <div class="modal-content">
+    <p id="confirmMessage"></p>
+    <input id="confirmInput1" type="text" placeholder="Enter new name" class="hidden" />
+    <input id="confirmInput2" type="text" placeholder="Enter 10-digit mobile" class="hidden" />
+    <div class="modal-buttons">
+      <button id="cancelConfirm">Cancel</button>
+      <button id="okConfirm">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Confirm Modal -->
+<div id="customConfirm" class="modal1 hidden">
+  <div class="modal-content">
+    <p id="confirmMessage">Sure Are You Want to Delete....??</p>
+    <div class="modal-buttons">
+      <button id="confirmNo">No</button>
+      <button id="confirmYes">Yes</button>
+    </div>
+  </div>
+</div>
+
+
+
+<button id="add-worker-btn" class="floating-btn" aria-label="Add new worker" title="Add new worker"><i class="fas fa-plus"></i></button>
+<button id="add-month-btn" class="floating-btn" aria-label="Add new month" title="Add new month">
+  <i class="fas fa-plus"></i>
+</button>
+
+<!-- Add Month Modal -->
+<div id="addMonthModalOverlay" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal" role="document">
+    <h3>Add New Month</h3>
+    <input type="month" id="monthInput" />
+    <p id="modalErrorMonth" class="error"></p>
+    <div class="btns">
+      <button id="cancelAddMonth" class="cancel-btn">Cancel</button>
+      <button id="confirmAddMonth" class="save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+  <section style="display: flex; justify-content: center; text-align: center; background-color: transparent;">
+    <div class="container1" id="spinner" style="display: none;">
+      <div class="circle">
+        <span style="--i:0"></span>
+        <span style="--i:1"></span>
+        <span style="--i:2"></span>
+        <span style="--i:3"></span>
+        <span style="--i:4"></span>
+        <span style="--i:5"></span>
+        <span style="--i:6"></span>
+        <span style="--i:7"></span>
+        <span style="--i:8"></span>
+        <span style="--i:9"></span>
+        <span style="--i:10"></span>
+        <span style="--i:11"></span>
+        <span style="--i:12"></span>
+        <span style="--i:13"></span>
+        <span style="--i:14"></span>
+        <span style="--i:15"></span>
+        <span style="--i:16"></span>
+        <span style="--i:17"></span>
+        <span style="--i:18"></span>
+        <span style="--i:19"></span>
+        <span style="--i:20"></span>
+      </div>
+    </div>
+  </section>
+
+<script>
+  (() => {
+    // Elements main pages
+    const mainHeader = document.getElementById('main-header');
+    const workerListSection = document.getElementById('worker-list-section');
+    const workerListContainer = document.getElementById('worker-list');
+    const monthSelectionSection = document.getElementById('month-selection');
+    const monthWorkerName = document.getElementById('month-worker-name');
+    const monthList = document.getElementById('month-list');
+    const workerDetailSection = document.getElementById('worker-detail');
+    const workerNameHeading = document.getElementById('worker-name-heading');
+    const monthLabel = document.getElementById('month-label');
+
+    // Tabs and add buttons in tabs
+    const tabAttendance = document.getElementById('tab-attendance');
+    const tabPayment = document.getElementById('tab-payment');
+    const attendanceSection = document.getElementById('attendance-section');
+    const paymentSection = document.getElementById('payment-section');
+    const addAttendancePopupBtn = document.getElementById('add-attendance-popup-btn');
+    const addPaymentPopupBtn = document.getElementById('add-payment-popup-btn');
+
+    // Buttons
+    const backToWorkersBtn = document.getElementById('back-to-workers-btn');
+    const backToMonthsBtn = document.getElementById('back-to-months-btn');
+    const addWorkerBtn = document.getElementById('add-worker-btn');
+
+    // Modal elements for adding worker
+    const addWorkerModalOverlay = document.getElementById('add-worker-modal-overlay');
+    const addWorkerForm = document.getElementById('add-worker-form');
+    const workerNameInput = document.getElementById('worker-name-input');
+    const workerNumberInput = document.getElementById('worker-number-input');
+    const modalCancelBtnWorker = document.getElementById('modal-cancel-btn-worker');
+    const modalErrorWorker = document.getElementById('modal-error-worker');
+
+    // Modal elements for adding attendance and payment
+    const modalOverlay = document.getElementById('modal-overlay');
+    const addAttendanceForm = document.getElementById('add-attendance-form');
+    const addPaymentForm = document.getElementById('add-payment-form');
+    const modalCancelBtnAttendance = document.getElementById('modal-cancel-btn-attendance');
+    const modalCancelBtnPayment = document.getElementById('modal-cancel-btn-payment');
+    const attendanceDateInput = document.getElementById('attendance-date-input');
+    const attendanceStatusInput = document.getElementById('attendance-status-input');
+    const paymentDateInput = document.getElementById('payment-date-input');
+    const paymentAmountInput = document.getElementById('payment-amount-input');
+    const modalErrorAttendance = document.getElementById('modal-error-attendance');
+    const modalErrorPayment = document.getElementById('modal-error-payment');
+
+    // Attendance and payment summary
+    const totalDaysPresentSpan = document.getElementById('total-days-present');
+    const totalDaysAbsentSpan = document.getElementById('total-days-absent');
+    const totalPaymentPresentSpan = document.getElementById('total-payment-present');
+    const dailyWageInput = document.getElementById('daily-wage');
+    const totalPaidSpan = document.getElementById('total-paid');
+    const totalUnpaidSpan = document.getElementById('total-unpaid');
+
+    // Containers for dates grid
+    const datesGrid = document.getElementById('dates-grid');
+    const paymentDatesGrid = document.getElementById('payment-dates-grid');
+
+
+    const workersKey = 'contractor_workers_list';
+
+    // State variables
+    let workers = [];
+    let currentUID = null;
+    let currentWorker = null;  // string worker name
+    let currentYearMonth = null; // "YYYY-MM"
+    let attendanceRecords = {};
+    let paymentRecords = {};
+    let dailyWage = 0;
+
+
+    // Loading and saving workers list
+async function saveWorkersToFirebase(workers) {
+  if (!currentUID) {
+    console.warn("⛔ Tried to save workers but user is not ready");
+    return;
+  }
+
+  await firebase.database().ref(`users/${currentUID}/workers`).set(workers);
+}
+
+
+
+    // Attendance and Payment keys for each month for current worker
+    function attendanceKeyFor(worker, ym) {
+      return `contractor_attendance_${worker}_${ym}`;
+    }
+    
+async function loadCurrentWorkerMonthRecords() {
+  const spinner = document.getElementById('spinner');
+  spinner.style.display = 'block'; // 👈 Show spinner
+  if (!currentWorker || !currentYearMonth) return;
+  const [attendance, payment] = await Promise.all([
+  loadAttendance(worker, ym),
+  loadPayment(worker, ym)
+]);
+  spinner.style.display = 'none'; // 👈 hide spinner
+
+}
+
+function renderPayment(records) {
+  const container = document.getElementById('payment-container');
+  container.innerHTML = '';
+
+  for (const date in records) {
+    const amount = records[date];
+    const div = document.createElement('div');
+    div.className = 'payment-item';
+    div.textContent = `${date}: ₹${amount}`;
+    container.appendChild(div);
+  }
+}
+
+function renderAttendance(records) {
+  const container = document.getElementById('attendance-container');
+  container.innerHTML = '';
+
+  for (const date in records) {
+    const status = records[date];
+    const div = document.createElement('div');
+    div.className = 'attendance-item';
+    div.textContent = `${date}: ${status}`;
+    container.appendChild(div);
+  }
+}
+
+
+    // Load records for current worker and month
+async function loadCurrentWorkerMonthRecords() {
+  const spinner = document.getElementById('spinner');
+  const attendanceContainer = document.getElementById('attendance-container');
+  const paymentContainer = document.getElementById('payment-container');
+
+  spinner.style.display = 'block';
+  attendanceContainer.innerHTML = '';
+  paymentContainer.innerHTML = '';
+
+  if (!currentWorker || !currentYearMonth) {
+    spinner.style.display = 'none';
+    return;
+  }
+
+  const [attendance, payment] = await Promise.all([
+    loadAttendance(currentWorker, currentYearMonth),
+    loadPayment(currentWorker, currentYearMonth)
+  ]);
+
+  attendanceRecords = attendance;
+  paymentRecords = payment;
+
+  if (!attendance || Object.keys(attendance).length === 0) {
+    attendanceContainer.innerHTML = '<p style="text-align:center; color:#888;">No attendance record found.</p>';
+  } else {
+    renderAttendance(attendanceRecords);
+  }
+  if (!payment || Object.keys(payment).length === 0) {
+    paymentContainer.innerHTML = '<p style="text-align:center; color:#888;">No payment record found.</p>';
+  } else {
+    renderPayment(paymentRecords);
+  }
+
+  spinner.style.display = 'none';
+}
+
+
+
+
+async function saveAttendanceRecord(worker, ym, date, status) {
+  if (!currentUID) {
+    console.warn("⛔ User not logged in. Can't save attendance.");
+    return;
+  }
+
+  const ref = firebase.database().ref(`users/${currentUID}/workers/${worker}/months/${ym}/attendance/${date}`);
+  await ref.set(status);
+}
+
+
+async function savePaymentRecord(worker, ym, date, amount) {
+  if (!currentUID) {
+    console.warn("⛔ User not logged in. Can't save payment.");
+    return;
+  }
+
+  const ref = firebase.database().ref(`users/${currentUID}/workers/${worker}/months/${ym}/payment/${date}`);
+  await ref.set(amount);
+}
+
+
+
+
+async function savePayment(worker, ym, data) {
+  if (!currentUID) {
+    console.warn("⛔ Tried to save payment but user is not logged in.");
+    return;
+  }
+
+  await firebase.database().ref(`users/${currentUID}/workers/${worker}/months/${ym}/payment`).set(data);
+}
+
+
+
+async function loadAttendance(worker, ym) {
+  if (!currentUID) return {};
+
+  const ref = firebase.database().ref(`users/${currentUID}/workers/${worker}/months/${ym}/attendance`);
+  const snap = await ref.once('value');
+  return snap.val() || {};
+}
+
+
+async function saveAttendance(worker, ym, data) {
+  if (!currentUID) {
+    console.warn("⛔ Tried to save attendance but user is not logged in.");
+    return;
+  }
+
+  await firebase.database().ref(`users/${currentUID}/workers/${worker}/months/${ym}/attendance`).set(data);
+}
+
+async function loadPayment(worker, ym) {
+  if (!currentUID) return {};
+
+  const ref = firebase.database().ref(`users/${currentUID}/workers/${worker}/months/${ym}/payment`);
+  const snap = await ref.once('value');
+  return snap.val() || {};
+}
+
+
+
+// Showconfirm 
+function showConfirm(message, callback) {
+  const modal = document.getElementById("customConfirm");
+  const msg = document.getElementById("confirmMessage");
+  const yes = document.getElementById("confirmYes");
+  const no = document.getElementById("confirmNo");
+
+  msg.textContent = message;
+  modal.classList.remove("hidden");
+
+  const cleanup = () => {
+    modal.classList.add("hidden");
+    yes.onclick = null;
+    no.onclick = null;
+  };
+
+  yes.onclick = () => {
+    cleanup();
+    callback(true);
+  };
+
+  no.onclick = () => {
+    cleanup();
+    callback(false);
+  };
+}
+
+
+// Final version: sorted, editable, mobile validated, search with icon
+function renderWorkerList() {
+  workerListContainer.innerHTML = '';
+  
+const searchQuery = document.getElementById('worker-search-input')?.value?.toLowerCase() || '';
+
+document.getElementById('spinner').style.display = 'block';
+// await Firebase loading...
+document.getElementById('spinner').style.display = 'none';
+
+
+const filteredWorkers = (workers || [])
+  .filter(w => typeof w === 'object' && w.name) // 🚫 skip malformed data
+  .slice()
+  .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+  .filter(w => (w.name || "").toLowerCase().includes(searchQuery));
+
+if (filteredWorkers.length === 0) {
+  const p = document.createElement('p');
+  p.textContent = "No workers found. Click the + button to add one.";
+  p.style.color = '#7f8c8d';
+  p.style.textAlign = 'center';
+  p.style.marginTop = '20px';
+  workerListContainer.appendChild(p);
+  return;
+}
+
+  filteredWorkers.forEach((worker, index) => {
+      const name = worker.name || "Unnamed";
+      const mobile = worker.mobile || "";
+    
+    const div = document.createElement('div');
+    div.className = 'worker-item';
+    div.style.border = '1px solid #ddd';
+    div.style.padding = '10px';
+    div.style.marginBottom = '10px';
+    div.style.borderRadius = '8px';
+    div.style.background = '#fff';
+    
+    const nameEl = document.createElement('div');
+    nameEl.className = 'name';
+    nameEl.textContent = `Name: ${name}`;
+    nameEl.style.fontWeight = 'bold';
+    nameEl.style.color = '#000';
+    
+    const mobileEl = document.createElement('div');
+    mobileEl.className = 'Mobile';
+    mobileEl.textContent = mobile ? `Mobile: ${mobile}` : '';
+    mobileEl.style.fontSize = '0.9rem';
+    mobileEl.style.fontWeight = 'bold';
+    mobileEl.style.color = '#555';
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.marginTop = '8px';
+    buttonContainer.style.display = 'flex';
+    
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.innerHTML = '<i class="fas fa-trash-alt"></i><h1>Delete</h1>';
+    delBtn.style.marginRight = '10px';
+  
+delBtn.onclick = async (e) => {
+  e.stopPropagation();
+  showConfirm(`Delete worker "${name}"?`, async (confirmed) => {
+    if (confirmed) {
+      const realIndex = workers.findIndex(w => w.name === name);
+      if (realIndex !== -1) {
+        workers.splice(realIndex, 1);
+        await deleteAllWorkerData(name);
+        await saveWorkersToFirebase(workers);
+        renderWorkerList();
+      }
+    }
+  });
+};
+
+
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.innerHTML = '<i class="fas fa-edit"></i><h1>Edit</h1>';
+    editBtn.onclick = (e) => {
+  e.stopPropagation();
+
+  const confirmModal = document.getElementById("confirmModal");
+  const confirmMessage = document.getElementById("confirmMessage");
+  const input1 = document.getElementById("confirmInput1"); // Name
+  const input2 = document.getElementById("confirmInput2"); // Mobile
+  const okBtn = document.getElementById("okConfirm");
+  const cancelBtn = document.getElementById("cancelConfirm");
+
+  // Show modal
+  confirmMessage.textContent = `Edit worker "${name}"`;
+  input1.classList.remove("hidden");
+  input2.classList.remove("hidden");
+  input1.placeholder = "Enter new name";
+  input2.placeholder = "Enter 10-digit mobile";
+  input1.value = name;
+  input2.value = mobile;
+  confirmModal.classList.remove("hidden");
+
+  const closeModal = () => {
+    confirmModal.classList.add("hidden");
+    input1.classList.add("hidden");
+    input2.classList.add("hidden");
+    input1.value = "";
+    input2.value = "";
+    okBtn.onclick = null;
+    cancelBtn.onclick = null;
+  };
+
+  cancelBtn.onclick = closeModal;
+
+  okBtn.onclick = () => {
+    const newName = input1.value.trim();
+    const newMobile = input2.value.trim();
+
+    if (!newName || !/^[0-9]{10}$/.test(newMobile)) {
+      alert("Invalid input. Name required and mobile must be 10 digits.");
+      return;
+    }
+
+    const duplicate = workers.some((w, i) => i !== index && w.name.toLowerCase() === newName.toLowerCase());
+    if (duplicate) {
+      alert("Name already exists.");
+      return;
+    }
+
+    workers[index].name = newName;
+    workers[index].mobile = newMobile;
+    renameWorkerData(name, newName);
+    saveWorkersToFirebase();
+    
+    renderWorkerList();
+    closeModal();
+  };
+};
+    
+    buttonContainer.appendChild(delBtn);
+    buttonContainer.appendChild(editBtn);
+    
+    div.appendChild(nameEl);
+    div.appendChild(mobileEl);
+    div.appendChild(buttonContainer);
+    
+    div.addEventListener('click', () => openMonthSelection(name));
+    
+    workerListContainer.appendChild(div);
+  });
+}
+
+// Add search bar once
+if (!document.getElementById('worker-search-input')) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'search-bar-wrapper';
+
+  const icon = document.createElement('i');
+  icon.className = 'fas fa-search search-icon';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Search workers...';
+  input.id = 'worker-search-input';
+  input.className = 'search-input';
+
+  input.addEventListener('input', renderWorkerList);
+
+  wrapper.appendChild(icon);
+  wrapper.appendChild(input);
+  document.getElementById('worker-list-section')?.prepend(wrapper);
+}
+
+async function deleteAllWorkerData(workerName) {
+  if (!currentUID) {
+    console.warn("User not logged in. Cannot delete data.");
+    return;
+  }
+  await firebase.database().ref(`users/${currentUID}/workers/${workerName}`).remove();
+}
+
+async function renameWorkerData(oldName, newName) {
+  const uid = getCurrentUID();
+  if (!uid) return;
+
+  const oldRef = firebase.database().ref(`users/${uid}/workers/${oldName}`);
+  const newRef = firebase.database().ref(`users/${uid}/workers/${newName}`);
+
+  const snapshot = await oldRef.once('value');
+  const oldData = snapshot.val();
+  if (oldData) {
+    await newRef.set(oldData);   // copy
+    await oldRef.remove();       // delete old
+  }
+
+  // Update main workers list if needed
+  workers = workers.map(w => w.name === oldName ? { ...w, name: newName } : w);
+  await saveWorkersToFirebase(workers);
+}
+
+
+    // Show worker list
+    function showWorkerList() {
+      currentWorker = null;
+      currentYearMonth = null;
+      mainHeader.classList.remove('hidden');
+      workerListSection.style.display = '';
+      monthSelectionSection.classList.remove('active');
+      workerDetailSection.classList.remove('active');
+      clearMessages();
+      addWorkerBtn.style.display = '';
+      addMonthBtn.style.display = 'none';
+      monthList.innerHTML = '';
+    }
+
+    // Show month selection for worker
+    function openMonthSelection(workerName) {
+      currentWorker = workerName;
+      currentYearMonth = null;
+      mainHeader.classList.add('hidden');
+      workerListSection.style.display = 'none';
+      monthSelectionSection.classList.add('active');
+      workerDetailSection.classList.remove('active');
+      monthWorkerName.textContent = workerName;
+      addWorkerBtn.style.display = 'none';
+      addMonthBtn.style.display = '';
+      renderMonthList();
+    }
+
+    // Render last 12 months
+    function monthsKeyFor(worker) {
+  return `contractor_months_${worker}`;
+}
+
+async function saveWorkerMonths(worker, monthList) {
+  const uid = getCurrentUID();
+  if (!uid) return;
+  if (!Array.isArray(monthList)) return;
+  await firebase.database().ref(`users/${uid}/workers/${worker}/months_list`).set(monthList);
+}
+
+
+async function loadWorkerMonths(worker) {
+  const uid = getCurrentUID();
+  if (!uid) return [];
+  const snap = await firebase.database().ref(`users/${uid}/workers/${worker}/months_list`).once('value');
+  const val = snap.val();
+  
+  if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object') return Object.values(val); // convert object to array
+  return [];
+}
+
+
+
+function showCustomConfirm(message, onConfirm) {
+  const modal = document.getElementById('customConfirm');
+  const msg = document.getElementById('confirmMessage');
+  const yesBtn = document.getElementById('confirmYes');
+  const noBtn = document.getElementById('confirmNo');
+
+  msg.textContent = message;
+  modal.classList.remove('hidden');
+
+  const close = () => {
+    modal.classList.add('hidden');
+    yesBtn.onclick = null;
+    noBtn.onclick = null;
+  };
+
+  noBtn.onclick = close;
+  yesBtn.onclick = () => {
+    close();
+    onConfirm();
+  };
+}
+
+
+async function renderMonthList() {
+  
+  const spinner = document.getElementById('spinner');
+  spinner.style.display = 'block'; // 🔄 Show spinner
+  let workerMonths = await loadWorkerMonths(currentWorker);
+  monthList.innerHTML = '';
+  // 🔒 SAFEGUARD: Ensure it’s a proper array
+  if (!Array.isArray(workerMonths)) {
+    if (workerMonths && typeof workerMonths === 'object') {
+      workerMonths = Object.values(workerMonths); // convert object to array
+    } else {
+      workerMonths = [];
+    }
+  }
+
+  workerMonths
+    .sort()
+    .reverse()
+    .forEach((ym, index) => {
+      const dt = new Date(ym + '-01');
+      const monthDisplay = dt.toLocaleString(undefined, { month: 'short', year: 'numeric' });
+
+      const div = document.createElement('div');
+      div.className = 'month-item';
+      div.setAttribute('role', 'listitem');
+      div.setAttribute('tabindex', '0');
+      const label = document.createElement('span');
+      label.textContent = monthDisplay;
+      label.style.flex = '1';
+
+      const delBtn = document.createElement('button');
+      delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+      delBtn.className = 'delete-btn';
+      delBtn.title = 'Delete month';
+
+      delBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        showCustomConfirm(`Delete month "${monthDisplay}"?`, async () => {
+          workerMonths.splice(index, 1);
+          await saveWorkerMonths(currentWorker, workerMonths);
+          await firebase.database().ref(`users/${getCurrentUID()}/workers/${currentWorker}/months/${ym}`).remove();
+          renderMonthList();
+        });
+      });
+
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.marginLeft = 'auto';
+      buttonContainer.appendChild(delBtn);
+
+      div.style.display = 'flex';
+      div.style.alignItems = 'center';
+      div.style.justifyContent = 'space-between';
+
+      div.appendChild(label);
+      div.appendChild(buttonContainer);
+
+      div.addEventListener('click', () => openWorkerDetail(currentWorker, ym, monthDisplay));
+      div.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openWorkerDetail(currentWorker, ym, monthDisplay);
+        }
+      });
+
+      monthList.appendChild(div);
+    });
+    spinner.style.display = 'none';// ✅ Hide spinner after load
+    if (workerMonths.length === 0) {
+    const p = document.createElement('p');
+    p.textContent = 'No months added. Use + button to add a month.';
+    p.style.textAlign = 'center';
+    p.style.color = '#888';
+    p.style.marginTop = '20px';
+    monthList.appendChild(p);
+    return;
+  }
+}
+
+
+
+
+    function formatYearMonth(date) {
+      const y = date.getFullYear();
+      const m = (date.getMonth() + 1).toString().padStart(2,'0');
+      return `${y}-${m}`;
+    }
+
+    function openWorkerDetail(workerName, yearMonth, monthDisplay) {
+      if (!workerName || !yearMonth) return;
+      currentWorker = workerName;
+      currentYearMonth = yearMonth;
+      mainHeader.classList.add('hidden');
+      workerListSection.style.display = 'none';
+      monthSelectionSection.classList.remove('active');
+      workerDetailSection.classList.add('active');
+      workerNameHeading.textContent = workerName;
+      monthLabel.textContent = monthDisplay;
+      clearMessages();
+      loadCurrentWorkerMonthRecords();
+      generateDatesGrid(yearMonth);
+      refreshPaymentGrid();
+      refreshAttendanceGrid();
+      updateAttendanceSummary();
+      updatePaymentSummary();
+      setActiveTab('attendance');
+    }
+
+    function clearMessages() {
+      modalErrorWorker.textContent = '';
+      modalErrorAttendance.textContent = '';
+      modalErrorPayment.textContent = '';
+      // No other messages implemented currently
+    }
+
+    // Generate date grids for attendance and payment
+    function generateDatesGrid(yearMonth) {
+      const firstDate = new Date(`${yearMonth}-01`);
+      const lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 0);
+      const daysInMonth = lastDate.getDate();
+      datesGrid.innerHTML = '';
+      paymentDatesGrid.innerHTML = '';
+    }
+
+function refreshAttendanceGrid() {
+  const existingDates = new Set(
+    Array.from(datesGrid.querySelectorAll('.date-box')).map(box => {
+      return `${currentYearMonth}-${box.querySelector('.date-label').textContent.padStart(2, '0')}`;
+    })
+  );
+
+  Object.entries(attendanceRecords).forEach(([dateStr, status]) => {
+    if (!dateStr.startsWith(currentYearMonth)) return;
+
+    if (!existingDates.has(dateStr)) {
+      const day = parseInt(dateStr.split('-')[2]);
+
+      // Create new dateBox
+      const dateBox = document.createElement('div');
+      dateBox.className = 'date-box';
+      dateBox.setAttribute('tabindex', '0');
+
+      const label = document.createElement('div');
+      label.className = 'date-label';
+      label.textContent = day;
+      dateBox.appendChild(label);
+
+      const statusDiv = document.createElement('div');
+      statusDiv.className = 'status-indicator';
+
+      const presentBtn = document.createElement('div');
+      presentBtn.className = 'status-button present';
+      presentBtn.textContent = 'Present';
+
+      const absentBtn = document.createElement('div');
+      absentBtn.className = 'status-button absent';
+      absentBtn.textContent = 'Absent';
+
+      // Mark selected class
+      presentBtn.classList.toggle('selected', status === 'Present');
+      absentBtn.classList.toggle('selected', status === 'Absent');
+
+      // Add click handlers
+      presentBtn.addEventListener('click', () => {
+        attendanceRecords[dateStr] = 'Present';
+        saveAttendance();
+        updateAttendanceSummary();
+        refreshAttendanceGrid();
+        updatePaymentSummary();
+      });
+
+      absentBtn.addEventListener('click', () => {
+        attendanceRecords[dateStr] = 'Absent';
+        saveAttendance();
+        updateAttendanceSummary();
+        refreshAttendanceGrid();
+        updatePaymentSummary();
+      });
+
+      statusDiv.appendChild(presentBtn);
+      statusDiv.appendChild(absentBtn);
+      dateBox.appendChild(statusDiv);
+      datesGrid.appendChild(dateBox);
+    } else {
+      // Just update class if already exists
+      const day = dateStr.split('-')[2];
+      const box = Array.from(datesGrid.querySelectorAll('.date-box')).find(b =>
+        b.querySelector('.date-label').textContent === String(parseInt(day))
+      );
+
+      if (box) {
+        const presentBtn = box.querySelector('.status-button.present');
+        const absentBtn = box.querySelector('.status-button.absent');
+
+        presentBtn.classList.toggle('selected', status === 'Present');
+        absentBtn.classList.toggle('selected', status === 'Absent');
+      }
+    }
+  });
+}
+
+
+    // Update attendance summary
+    function updateAttendanceSummary() {
+      let presentCount = 0;
+      let absentCount = 0;
+      for (const status of Object.values(attendanceRecords)) {
+        if (status === 'Present') presentCount++;
+        else if (status === 'Absent') absentCount++;
+      }
+      totalDaysPresentSpan.textContent = presentCount;
+      totalDaysAbsentSpan.textContent = absentCount;
+    }
+
+    // Update payment summary
+    function updatePaymentSummary() {
+      dailyWage = Number(dailyWageInput.value) || 0;
+      const presentDays = Number(totalDaysPresentSpan.textContent) || 0;
+      totalPaymentPresentSpan.textContent = presentDays;
+      let totalPaid = 0;
+      for (const amount of Object.values(paymentRecords)) {
+        totalPaid += Number(amount);
+      }
+      const totalExpected = dailyWage * presentDays;
+      totalPaidSpan.textContent = totalPaid.toFixed(2);
+      const unpaid = Math.max(0, totalExpected - totalPaid);
+      totalUnpaidSpan.textContent = unpaid.toFixed(2);
+    }
+
+
+
+    // Tab handling
+    function setActiveTab(tabName) {
+      if (tabName === 'attendance') {
+        tabAttendance.classList.add('active');
+        tabAttendance.setAttribute('aria-selected', 'true');
+        tabAttendance.setAttribute('tabindex', '0');
+        tabPayment.classList.remove('active');
+        tabPayment.setAttribute('aria-selected', 'false');
+        tabPayment.setAttribute('tabindex', '-1');
+        attendanceSection.classList.add('active');
+        paymentSection.classList.remove('active');
+      } else if (tabName === 'payment') {
+        tabPayment.classList.add('active');
+        tabPayment.setAttribute('aria-selected', 'true');
+        tabPayment.setAttribute('tabindex', '0');
+        tabAttendance.classList.remove('active');
+        tabAttendance.setAttribute('aria-selected', 'false');
+        tabAttendance.setAttribute('tabindex', '-1');
+        paymentSection.classList.add('active');
+        attendanceSection.classList.remove('active');
+      }
+    }
+    
+    tabAttendance.addEventListener('click', () => setActiveTab('attendance'));
+    tabPayment.addEventListener('click', () => setActiveTab('payment'));
+
+    // Navigation buttons
+    backToWorkersBtn.addEventListener('click', () => {
+      showWorkerList();
+    });
+    backToMonthsBtn.addEventListener('click', () => {
+      openMonthSelection(currentWorker);
+    });
+
+// Month modal elements
+const addMonthBtn = document.getElementById('add-month-btn');
+const addMonthModalOverlay = document.getElementById('addMonthModalOverlay');
+const monthInput = document.getElementById('monthInput');
+const modalErrorMonth = document.getElementById('modalErrorMonth');
+const confirmAddMonth = document.getElementById('confirmAddMonth');
+const cancelAddMonth = document.getElementById('cancelAddMonth');
+
+// Add Month Button (show popup)
+addMonthBtn?.addEventListener('click', () => {
+  addMonthModalOverlay.classList.add('active');
+  monthInput.value = '';
+  modalErrorMonth.textContent = '';
+  monthInput.focus();
+});
+
+// Cancel Button
+cancelAddMonth?.addEventListener('click', () => {
+  addMonthModalOverlay.classList.remove('active');
+});
+
+
+// Confirm/Save Button
+confirmAddMonth.addEventListener('click', async () => {
+  
+let workerMonths = await loadWorkerMonths(currentWorker);
+  const selectedMonth = monthInput.value.trim(); // format: "YYYY-MM"
+
+  if (!selectedMonth) {
+    modalErrorMonth.textContent = 'Please select a valid month.';
+    return;
+  }
+
+
+// 🔒 SAFEGUARD
+if (!Array.isArray(workerMonths)) {
+  if (workerMonths && typeof workerMonths === 'object') {
+    workerMonths = Object.values(workerMonths);
+  } else {
+    workerMonths = [];
+  }
+}
+
+if (workerMonths.includes(selectedMonth)) {
+  modalErrorMonth.textContent = 'Month already exists.';
+  return;
+}
+
+
+  workerMonths.push(selectedMonth);
+  saveWorkerMonths(currentWorker, workerMonths);
+  renderMonthList(); // re-render the list
+  addMonthModalOverlay.classList.remove('active');
+});
+
+
+
+    // Add worker popup control
+    addWorkerBtn.addEventListener('click', () => {
+      addWorkerModalOverlay.classList.add('active');
+      workerNameInput.value = '';
+      workerNumberInput.value = '';
+      modalErrorWorker.textContent = '';
+      workerNameInput.focus();
+      workerNumberInput.focus();
+    });
+    
+    modalCancelBtnWorker.addEventListener('click', () => {
+      addWorkerModalOverlay.classList.remove('active');
+      modalErrorWorker.textContent = '';
+    });
+    addWorkerModalOverlay.addEventListener('click', e => {
+      if (e.target === addWorkerModalOverlay) {
+        addWorkerModalOverlay.classList.remove('active');
+        modalErrorWorker.textContent = '';
+      }
+    });
+    addWorkerModalOverlay.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        addWorkerModalOverlay.classList.remove('active');
+        modalErrorWorker.textContent = '';
+      }
+    });
+
+    // Add worker form submit
+addWorkerForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  console.log("🔧 Add Worker form submitted"); // ✅ Add this
+
+  const name = workerNameInput.value.trim();
+  const mobile = workerNumberInput.value.trim();
+
+  if (name.length === 0) {
+    console.warn("⚠️ Worker name is empty");
+    return;
+  }
+
+  workers.push({ name, mobile });
+  await saveWorkersToFirebase(workers);
+  renderWorkerList();
+  addWorkerModalOverlay.classList.remove('active');
+});
+
+
+    // Daily wage input update
+    dailyWageInput.addEventListener('input', () => {
+      updatePaymentSummary();
+    });
+
+    // Attendance pop-up handlers
+    addAttendancePopupBtn.addEventListener('click', () => openAttendanceModal());
+    modalCancelBtnAttendance.addEventListener('click', () => closeModal());
+    addAttendanceForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = attendanceDateInput.value;
+      const status = attendanceStatusInput.value;
+      if (!date || !status) {
+        modalErrorAttendance.textContent = 'Please fill in all fields.';
+        return;
+      }
+      if (!date.startsWith(currentYearMonth)) {
+        modalErrorAttendance.textContent = 'Date must be within selected month.';
+        return;
+      }
+      attendanceRecords[date] = status;
+      saveAttendance();
+      updateAttendanceSummary();
+      refreshAttendanceGrid();
+      updatePaymentSummary();
+      closeModal();
+    });
+
+    // Payment pop-up handlers
+    addPaymentPopupBtn.addEventListener('click', () => openPaymentModal());
+    modalCancelBtnPayment.addEventListener('click', () => closeModal());
+    addPaymentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = paymentDateInput.value;
+      const amount = paymentAmountInput.value;
+      if (!date || amount === '') {
+        modalErrorPayment.textContent = 'Please fill in all fields.';
+        return;
+      }
+      if (!date.startsWith(currentYearMonth)) {
+        modalErrorPayment.textContent = 'Date must be within selected month.';
+        return;
+      }
+      if (Number(amount) < 0 || isNaN(Number(amount))) {
+        modalErrorPayment.textContent = 'Invalid payment amount.';
+        return;
+      }
+      paymentRecords[date] = Number(amount);
+      savePayment();
+      updatePaymentSummary();
+      refreshPaymentGrid();
+      closeModal();
+    });
+
+    // Modal open/close helpers
+    function openAttendanceModal() {
+      modalOverlay.classList.add('active');
+      addAttendanceForm.style.display = 'block';
+      addPaymentForm.style.display = 'none';
+      modalErrorAttendance.textContent = '';
+      attendanceDateInput.value = '';
+      attendanceStatusInput.value = '';
+      attendanceDateInput.setAttribute('min', getMonthStart());
+      attendanceDateInput.setAttribute('max', getMonthEnd());
+      attendanceDateInput.focus();
+    }
+    function openPaymentModal() {
+      modalOverlay.classList.add('active');
+      addPaymentForm.style.display = 'block';
+      addAttendanceForm.style.display = 'none';
+      modalErrorPayment.textContent = '';
+      paymentDateInput.value = '';
+      paymentAmountInput.value = '';
+      paymentDateInput.setAttribute('min', getMonthStart());
+      paymentDateInput.setAttribute('max', getMonthEnd());
+      paymentDateInput.focus();
+    }
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+      modalErrorAttendance.textContent = '';
+      modalErrorPayment.textContent = '';
+    }
+
+    // Helpers to get month start/end in YYYY-MM-DD format
+    function getMonthStart() {
+      return `${currentYearMonth}-01`;
+    }
+    function getMonthEnd() {
+      const [year, month] = currentYearMonth.split('-').map(Number);
+      const lastDay = new Date(year, month, 0).getDate();
+      return `${currentYearMonth}-${lastDay.toString().padStart(2,'0')}`;
+    } 
+    // Refresh payment grid inputs values
+function refreshPaymentGrid() {
+  paymentDatesGrid.innerHTML = ''; // 🧹 Clear grid
+
+  Object.entries(paymentRecords).forEach(([dateStr, value]) => {
+    if (!dateStr.startsWith(currentYearMonth)) return;
+
+    const day = parseInt(dateStr.split('-')[2]);
+
+    const dateBox = document.createElement('div');
+    dateBox.className = 'date-box';
+    dateBox.setAttribute('tabindex', '0');
+
+    const label = document.createElement('div');
+    label.className = 'date-label';
+    label.textContent = day;
+    dateBox.appendChild(label);
+
+    if (value !== undefined && value !== '') {
+      // ✅ Show styled ₹ box
+      const amountBox = document.createElement('div');
+      amountBox.className = 'payment-amount-box';
+      amountBox.textContent = `₹${value}`;
+      dateBox.appendChild(amountBox);
+    }
+
+    paymentDatesGrid.appendChild(dateBox);
+  });
+}
+
+// LOGIN / REGISTRATION LOGIC
+const authContainer = document.getElementById("auth-container");
+const appContainer = document.getElementById("app-container");
+const loginForm = document.getElementById("login-form");
+const registerForm = document.getElementById("register-form");
+const loginError = document.getElementById("login-error");
+
+// Auto-login check
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    authContainer.style.display = "none";
+    appContainer.style.display = "block";
+    initApp(); // load your app
+  } else {
+    authContainer.style.display = "block";
+    appContainer.style.display = "none";
+  }
+});
+
+function logout() {
+  firebase.auth().signOut().then(() => {
+    location.reload();
+  });
+}
+
+
+// Handle Login
+loginForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const email = document.getElementById("login-username").value.trim();
+  const password = document.getElementById("login-password").value.trim();
+
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, password);
+
+    // Wait until Firebase confirms the login is complete
+firebase.auth().onAuthStateChanged(async (user) => {
+  if (user) {
+    authContainer.style.display = "none";
+    appContainer.style.display = "block";
+    await initApp(); // only after login
+  } else {
+    authContainer.style.display = "block";
+    appContainer.style.display = "none";
+  }
+});
+  } catch (error) {
+    loginError.style.display = "block";
+    loginError.textContent = "Invalid Email or Password";
+  }
+});
+
+
+
+// Handle Registration
+registerForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const name = document.getElementById("reg-name").value.trim();
+  const mobile = document.getElementById("reg-mobile").value.trim();
+  const email = document.getElementById("reg-email").value.trim();
+  const password = document.getElementById("reg-password").value.trim();
+
+  try {
+    const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+    const uid = userCredential.user.uid;
+
+    // Save extra user details in Realtime DB
+    await firebase.database().ref(`users/${uid}/user_details`).set({
+      name,
+      mobile,
+      email
+    });
+
+    location.reload(); // Login automatically after registration
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+
+// Switch to Register
+document.getElementById("go-to-register").addEventListener("click", function (e) {
+  e.preventDefault();
+  loginForm.style.display = "none";
+  registerForm.style.display = "block";
+  loginError.style.display = "none";
+});
+
+// Switch to Login
+document.getElementById("go-to-login").addEventListener("click", function (e) {
+  e.preventDefault();
+  registerForm.style.display = "none";
+  loginForm.style.display = "block";
+  loginError.style.display = "none";
+});
+
+function getCurrentUID() {
+  const user = firebase.auth().currentUser;
+  return user?.uid || null;
+}
+
+
+
+async function loadWorkersFromFirebase() {
+  const snapshot = await firebase.database().ref(`users/${currentUID}/workers`).once('value');
+  const data = snapshot.val();
+  return data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+}
+
+
+
+
+
+
+async function preloadWorkerData() {
+  const allData = {};
+  for (const worker of workers) {
+    const months = await loadWorkerMonths(worker.name);
+    allData[worker.name] = { months };
+  }
+  return allData;
+}
+
+// Initialize app
+async function initApp() {
+  document.getElementById('spinner').style.display = 'block'; // Show spinner
+
+  workers = await loadWorkersFromFirebase();
+  console.log("Loaded workers:", workers);
+renderWorkerList();
+showWorkerList();
+  document.getElementById('spinner').style.display = 'none'; // Hide spinner
+}
+
+
+firebase.auth().onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUID = user.uid; // ✅ save it globally
+    console.log("✅ Firebase user ready:", currentUID);
+    authContainer.style.display = "none";
+    appContainer.style.display = "block";
+    await initApp();
+  } else {
+    currentUID = null;
+    authContainer.style.display = "block";
+    appContainer.style.display = "none";
+  }
+});
+  })();
+</script>
+</body>
+</html>
