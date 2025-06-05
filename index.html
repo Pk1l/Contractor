@@ -6,21 +6,25 @@
 <title>Civil Contractor Worker Management</title>
 <!-- Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
 <script>
   const firebaseConfig = {
-    apiKey: "AIzaSyAjZLi2WEWvWPTgznXrUIkrrM2sXhTUHdU",
-    authDomain: "contractor-fe104.firebaseapp.com",
-    projectId: "contractor-fe104",
-    storageBucket: "contractor-fe104.firebasestorage.app",
-    messagingSenderId: "455350824504",
-    appId: "1:455350824504:web:96d516956cf7c9b290c0cd",
-    measurementId: "G-QJ90WKKET9"
-  };
+  apiKey: "AIzaSyBsOaJP6yjkFc-DjcAujCARVUSn6jGfNK4",
+  authDomain: "pkcontractor7.firebaseapp.com",
+  databaseURL: "https://pkcontractor7-default-rtdb.firebaseio.com",
+  projectId: "pkcontractor7",
+  storageBucket: "pkcontractor7.firebasestorage.app",
+  messagingSenderId: "728451393348",
+  appId: "1:728451393348:web:7eb4899f300b977206d911"
+};
   firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  </script>
+</script>
+
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
   /* Reset & base */
@@ -1203,11 +1207,12 @@ font-weight: 600;">Register</button>
     const datesGrid = document.getElementById('dates-grid');
     const paymentDatesGrid = document.getElementById('payment-dates-grid');
 
-    // Keys in localStorage
+
     const workersKey = 'contractor_workers_list';
 
     // State variables
     let workers = [];
+    let currentUID = null;
     let currentWorker = null;  // string worker name
     let currentYearMonth = null; // "YYYY-MM"
     let attendanceRecords = {};
@@ -1216,55 +1221,80 @@ font-weight: 600;">Register</button>
 
 
     // Loading and saving workers list
-    const currentUser = sessionStorage.getItem("username");
+async function saveWorkersToFirebase(workers) {
+  if (!currentUID) {
+    console.warn("⛔ Tried to save workers but user is not ready");
+    return;
+  }
 
-function loadWorkers() {
-  firebase.database().ref(`users/${currentUser}/workers`).once("value")
-    .then(snapshot => {
-      workers = snapshot.val() || [];
-      renderWorkerList(); // Update your UI
-    });
+  await firebase.database().ref(`users/${currentUID}/workers`).set(workers);
 }
 
-function saveWorkers() {
-  firebase.database().ref(`users/${currentUser}/workers`).set(workers);
-}
+
 
     // Attendance and Payment keys for each month for current worker
     function attendanceKeyFor(worker, ym) {
-  return `users/${currentUser}/attendance/${worker}/${ym}`;
-}
-
-function paymentKeyFor(worker, ym) {
-  return `users/${currentUser}/payments/${worker}/${ym}`;
+      return `contractor_attendance_${worker}_${ym}`;
+    }
+    
+async function loadCurrentWorkerMonthRecords() {
+  if (!currentWorker || !currentYearMonth) return;
+  attendanceRecords = await loadAttendance(currentWorker, currentYearMonth);
+  paymentRecords = await loadPayment(currentWorker, currentYearMonth);
 }
 
 
     // Load records for current worker and month
-function loadCurrentWorkerMonthRecords(callback) {
+    async function loadCurrentWorkerMonthRecords() {
   if (!currentWorker || !currentYearMonth) return;
-
-  firebase.database().ref(attendanceKeyFor(currentWorker, currentYearMonth)).once("value")
-    .then(snapshot => {
-      attendanceRecords = snapshot.val() || {};
-    });
-
-  firebase.database().ref(paymentKeyFor(currentWorker, currentYearMonth)).once("value")
-    .then(snapshot => {
-      paymentRecords = snapshot.val() || {};
-      if (callback) callback(); // optional to trigger render after load
-    });
+  attendanceRecords = await loadAttendance(currentWorker, currentYearMonth);
+  paymentRecords = await loadPayment(currentWorker, currentYearMonth);
 }
-
 
 function saveAttendanceRecords() {
   if (!currentWorker || !currentYearMonth) return;
-  firebase.database().ref(attendanceKeyFor(currentWorker, currentYearMonth)).set(attendanceRecords);
+  saveAttendance(currentWorker, currentYearMonth, attendanceRecords);
 }
 
 function savePaymentRecords() {
   if (!currentWorker || !currentYearMonth) return;
-  firebase.database().ref(paymentKeyFor(currentWorker, currentYearMonth)).set(paymentRecords);
+  savePayment(currentWorker, currentYearMonth, paymentRecords);
+}
+
+
+
+async function savePayment(worker, ym, data) {
+  if (!currentUID) {
+    console.warn("⛔ Tried to save payment but user is not logged in.");
+    return;
+  }
+
+  await firebase.database().ref(`users/${currentUID}/workers/${worker}/months/${ym}/payment`).set(data);
+}
+
+
+
+async function loadAttendance(worker, ym) {
+  const uid = getCurrentUID();
+  if (!uid) return {};
+  const snap = await firebase.database().ref(`users/${uid}/workers/${worker}/months/${ym}/attendance`).once('value');
+  return snap.val() || {};
+}
+
+async function saveAttendance(worker, ym, data) {
+  if (!currentUID) {
+    console.warn("⛔ Tried to save attendance but user is not logged in.");
+    return;
+  }
+
+  await firebase.database().ref(`users/${currentUID}/workers/${worker}/months/${ym}/attendance`).set(data);
+}
+
+async function loadPayment(worker, ym) {
+  const uid = getCurrentUID();
+  if (!uid) return {};
+  const snap = await firebase.database().ref(`users/${uid}/workers/${worker}/months/${ym}/payment`).once('value');
+  return snap.val() || {};
 }
 
 
@@ -1300,11 +1330,13 @@ function showConfirm(message, callback) {
 function renderWorkerList() {
   workerListContainer.innerHTML = '';
   
-  const searchQuery = document.getElementById('worker-search-input')?.value?.toLowerCase() || '';
-const filteredWorkers = workers
+const searchQuery = document.getElementById('worker-search-input')?.value?.toLowerCase() || '';
+
+const filteredWorkers = (workers || [])
+  .filter(w => typeof w === 'object' && w.name) // 🚫 skip malformed data
   .slice()
-  .sort((a, b) => a.name.localeCompare(b.name))
-  .filter(w => w.name.toLowerCase().includes(searchQuery));
+  .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+  .filter(w => (w.name || "").toLowerCase().includes(searchQuery));
 
 if (filteredWorkers.length === 0) {
   const p = document.createElement('p');
@@ -1315,9 +1347,10 @@ if (filteredWorkers.length === 0) {
   workerListContainer.appendChild(p);
   return;
 }
-  filteredWorkers.forEach((worker, index) => {
-  const { name, mobile } = worker; // THIS IS IMPORTANT
 
+  filteredWorkers.forEach((worker, index) => {
+      const name = worker.name || "Unnamed";
+      const mobile = worker.mobile || "";
     
     const div = document.createElement('div');
     div.className = 'worker-item';
@@ -1356,7 +1389,7 @@ if (filteredWorkers.length === 0) {
       const realIndex = workers.findIndex(w => w.name === name);
       workers.splice(realIndex, 1);
       deleteAllWorkerData(name);
-      saveWorkers();
+      saveWorkersToFirebase();
       renderWorkerList();
     }
   });
@@ -1416,7 +1449,7 @@ if (filteredWorkers.length === 0) {
     workers[index].name = newName;
     workers[index].mobile = newMobile;
     renameWorkerData(name, newName);
-    saveWorkers();
+    saveWorkersToFirebase();
     
     renderWorkerList();
     closeModal();
@@ -1457,41 +1490,32 @@ if (!document.getElementById('worker-search-input')) {
   document.getElementById('worker-list-section')?.prepend(wrapper);
 }
 
-    function deleteAllWorkerData(workerName) {
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const key = localStorage.key(i);
-        if (key.startsWith(`contractor_attendance_${workerName}_`) || key.startsWith(`contractor_payment_${workerName}_`)) {
-          localStorage.removeItem(key);
-        }
-      }
-    }
-
-
-function renameWorkerData(oldName, newName) {
-  const keysToUpdate = [];
-
-  // Collect relevant keys
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (
-      key.startsWith(`contractor_attendance_${oldName}_`) ||
-      key.startsWith(`contractor_payment_${oldName}_`) ||
-      key === `contractor_months_${oldName}`
-    ) {
-      keysToUpdate.push(key);
-    }
-  }
-
-  // Rename keys
-  keysToUpdate.forEach(oldKey => {
-    const value = localStorage.getItem(oldKey);
-    const newKey = oldKey.replace(oldName, newName);
-    localStorage.setItem(newKey, value);
-    localStorage.removeItem(oldKey);
-  });
+async function deleteAllWorkerData(workerName) {
+  const uid = getCurrentUID();
+  if (!uid) return;
+  await firebase.database().ref(`users/${uid}/workers/${workerName}`).remove();
 }
 
 
+
+async function renameWorkerData(oldName, newName) {
+  const uid = getCurrentUID();
+  if (!uid) return;
+
+  const oldRef = firebase.database().ref(`users/${uid}/workers/${oldName}`);
+  const newRef = firebase.database().ref(`users/${uid}/workers/${newName}`);
+
+  const snapshot = await oldRef.once('value');
+  const oldData = snapshot.val();
+  if (oldData) {
+    await newRef.set(oldData);   // copy
+    await oldRef.remove();       // delete old
+  }
+
+  // Update main workers list if needed
+  workers = workers.map(w => w.name === oldName ? { ...w, name: newName } : w);
+  await saveWorkersToFirebase(workers);
+}
 
 
     // Show worker list
@@ -1527,19 +1551,26 @@ function renameWorkerData(oldName, newName) {
   return `contractor_months_${worker}`;
 }
 
-function loadWorkerMonths(worker) {
-  try {
-    const raw = localStorage.getItem(monthsKeyFor(worker));
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+async function saveWorkerMonths(worker, monthList) {
+  const uid = getCurrentUID();
+  if (!uid) return;
+  if (!Array.isArray(monthList)) return;
+  await firebase.database().ref(`users/${uid}/workers/${worker}/months_list`).set(monthList);
 }
 
-function saveWorkerMonths(worker, monthList) {
-  localStorage.setItem(monthsKeyFor(worker), JSON.stringify(monthList));
+
+async function loadWorkerMonths(worker) {
+  const uid = getCurrentUID();
+  if (!uid) return [];
+  const snap = await firebase.database().ref(`users/${uid}/workers/${worker}/months_list`).once('value');
+  const val = snap.val();
+  
+  if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object') return Object.values(val); // convert object to array
+  return [];
 }
+
+
 
 function showCustomConfirm(message, onConfirm) {
   const modal = document.getElementById('customConfirm');
@@ -1565,9 +1596,18 @@ function showCustomConfirm(message, onConfirm) {
 
 
 
-function renderMonthList() {
+async function renderMonthList() {
   monthList.innerHTML = '';
-  const workerMonths = loadWorkerMonths(currentWorker);
+  let workerMonths = await loadWorkerMonths(currentWorker);
+
+  // 🔒 SAFEGUARD: Ensure it’s a proper array
+  if (!Array.isArray(workerMonths)) {
+    if (workerMonths && typeof workerMonths === 'object') {
+      workerMonths = Object.values(workerMonths); // convert object to array
+    } else {
+      workerMonths = [];
+    }
+  }
 
   if (workerMonths.length === 0) {
     const p = document.createElement('p');
@@ -1599,17 +1639,16 @@ function renderMonthList() {
       delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
       delBtn.className = 'delete-btn';
       delBtn.title = 'Delete month';
-delBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  showCustomConfirm(`Delete month "${monthDisplay}"?`, () => {
-    workerMonths.splice(index, 1);
-    saveWorkerMonths(currentWorker, workerMonths);
-    renderMonthList();
-    localStorage.removeItem(attendanceKeyFor(currentWorker, ym));
-    localStorage.removeItem(paymentKeyFor(currentWorker, ym));
-  });
-});
 
+      delBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        showCustomConfirm(`Delete month "${monthDisplay}"?`, async () => {
+          workerMonths.splice(index, 1);
+          await saveWorkerMonths(currentWorker, workerMonths);
+          await firebase.database().ref(`users/${getCurrentUID()}/workers/${currentWorker}/months/${ym}`).remove();
+          renderMonthList();
+        });
+      });
 
       const buttonContainer = document.createElement('div');
       buttonContainer.style.marginLeft = 'auto';
@@ -1633,6 +1672,7 @@ delBtn.addEventListener('click', (e) => {
       monthList.appendChild(div);
     });
 }
+
 
 
 
@@ -1719,7 +1759,7 @@ function refreshAttendanceGrid() {
       // Add click handlers
       presentBtn.addEventListener('click', () => {
         attendanceRecords[dateStr] = 'Present';
-        saveAttendanceRecords();
+        saveAttendance();
         updateAttendanceSummary();
         refreshAttendanceGrid();
         updatePaymentSummary();
@@ -1727,7 +1767,7 @@ function refreshAttendanceGrid() {
 
       absentBtn.addEventListener('click', () => {
         attendanceRecords[dateStr] = 'Absent';
-        saveAttendanceRecords();
+        saveAttendance();
         updateAttendanceSummary();
         refreshAttendanceGrid();
         updatePaymentSummary();
@@ -1783,6 +1823,8 @@ function refreshAttendanceGrid() {
       totalUnpaidSpan.textContent = unpaid.toFixed(2);
     }
 
+
+
     // Tab handling
     function setActiveTab(tabName) {
       if (tabName === 'attendance') {
@@ -1805,6 +1847,7 @@ function refreshAttendanceGrid() {
         attendanceSection.classList.remove('active');
       }
     }
+    
     tabAttendance.addEventListener('click', () => setActiveTab('attendance'));
     tabPayment.addEventListener('click', () => setActiveTab('payment'));
 
@@ -1837,8 +1880,11 @@ cancelAddMonth?.addEventListener('click', () => {
   addMonthModalOverlay.classList.remove('active');
 });
 
+
 // Confirm/Save Button
-confirmAddMonth.addEventListener('click', () => {
+confirmAddMonth.addEventListener('click', async () => {
+  
+let workerMonths = await loadWorkerMonths(currentWorker);
   const selectedMonth = monthInput.value.trim(); // format: "YYYY-MM"
 
   if (!selectedMonth) {
@@ -1846,11 +1892,21 @@ confirmAddMonth.addEventListener('click', () => {
     return;
   }
 
-  const workerMonths = loadWorkerMonths(currentWorker);
-  if (workerMonths.includes(selectedMonth)) {
-    modalErrorMonth.textContent = 'Month already exists.';
-    return;
+
+// 🔒 SAFEGUARD
+if (!Array.isArray(workerMonths)) {
+  if (workerMonths && typeof workerMonths === 'object') {
+    workerMonths = Object.values(workerMonths);
+  } else {
+    workerMonths = [];
   }
+}
+
+if (workerMonths.includes(selectedMonth)) {
+  modalErrorMonth.textContent = 'Month already exists.';
+  return;
+}
+
 
   workerMonths.push(selectedMonth);
   saveWorkerMonths(currentWorker, workerMonths);
@@ -1888,28 +1944,24 @@ confirmAddMonth.addEventListener('click', () => {
     });
 
     // Add worker form submit
-    addWorkerForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const name = workerNameInput.value.trim();
-      const mobile = workerNumberInput.value.trim();
-      if (name.length === 0) {
-        modalErrorWorker.textContent = 'Worker name cannot be empty.';
-        workerNameInput.focus();
-        workerNumberInput.focus();
-        return;
-      }
-      if (workers.includes(name)) {
-        modalErrorWorker.textContent = `Worker "${name}" already exists.`;
-        workerNameInput.focus();
-        workerNumberInput.focus();
-        return;
-      }
-      workers.push({name, mobile});
-      saveWorkers();
-      
-      addWorkerModalOverlay.classList.remove('active');
-      renderWorkerList();
-    });
+addWorkerForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  console.log("🔧 Add Worker form submitted"); // ✅ Add this
+
+  const name = workerNameInput.value.trim();
+  const mobile = workerNumberInput.value.trim();
+
+  if (name.length === 0) {
+    console.warn("⚠️ Worker name is empty");
+    return;
+  }
+
+  workers.push({ name, mobile });
+  await saveWorkersToFirebase(workers);
+  renderWorkerList();
+  addWorkerModalOverlay.classList.remove('active');
+});
+
 
     // Daily wage input update
     dailyWageInput.addEventListener('input', () => {
@@ -1932,7 +1984,7 @@ confirmAddMonth.addEventListener('click', () => {
         return;
       }
       attendanceRecords[date] = status;
-      saveAttendanceRecords();
+      saveAttendance();
       updateAttendanceSummary();
       refreshAttendanceGrid();
       updatePaymentSummary();
@@ -1959,7 +2011,7 @@ confirmAddMonth.addEventListener('click', () => {
         return;
       }
       paymentRecords[date] = Number(amount);
-      savePaymentRecords();
+      savePayment();
       updatePaymentSummary();
       refreshPaymentGrid();
       closeModal();
@@ -2041,63 +2093,77 @@ const registerForm = document.getElementById("register-form");
 const loginError = document.getElementById("login-error");
 
 // Auto-login check
-if (sessionStorage.getItem("loggedIn") === "true") {
-  authContainer.style.display = "none";
-  appContainer.style.display = "block";
-} else {
-  authContainer.style.display = "block";
-  appContainer.style.display = "none";
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    authContainer.style.display = "none";
+    appContainer.style.display = "block";
+    initApp(); // load your app
+  } else {
+    authContainer.style.display = "block";
+    appContainer.style.display = "none";
+  }
+});
+
+function logout() {
+  firebase.auth().signOut().then(() => {
+    location.reload();
+  });
 }
 
+
 // Handle Login
-loginForm.addEventListener("submit", function (e) {
+loginForm.addEventListener("submit", async function (e) {
   e.preventDefault();
-  const enteredUsername = document.getElementById("login-username").value.trim();
-  const enteredPassword = document.getElementById("login-password").value.trim();
+  const email = document.getElementById("login-username").value.trim();
+  const password = document.getElementById("login-password").value.trim();
 
-  firebase.database().ref("users/" + enteredUsername).once("value")
-    .then(snapshot => {
-      const user = snapshot.val();
-      if (user && user.password === enteredPassword) {
-        // Save session login
-        sessionStorage.setItem("loggedIn", "true");
-        sessionStorage.setItem("username", enteredUsername);
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, password);
 
-        // Show app UI
-        loginError.style.display = "none";
-        authContainer.style.display = "none";
-        appContainer.style.display = "block";
-
-        // Optionally reload
-        // location.reload();
-      } else {
-        loginError.style.display = "block";
-      }
-    })
-    .catch(error => {
-      console.error("Login failed:", error);
-      loginError.style.display = "block";
-    });
+    // Wait until Firebase confirms the login is complete
+firebase.auth().onAuthStateChanged(async (user) => {
+  if (user) {
+    authContainer.style.display = "none";
+    appContainer.style.display = "block";
+    await initApp(); // only after login
+  } else {
+    authContainer.style.display = "block";
+    appContainer.style.display = "none";
+  }
 });
+  } catch (error) {
+    loginError.style.display = "block";
+    loginError.textContent = "Invalid Email or Password";
+  }
+});
+
 
 
 // Handle Registration
-registerForm.addEventListener("submit", function (e) {
+registerForm.addEventListener("submit", async function (e) {
   e.preventDefault();
-  const username = document.getElementById("reg-username").value.trim();
-  const password = document.getElementById("reg-password").value.trim();
   const name = document.getElementById("reg-name").value.trim();
   const mobile = document.getElementById("reg-mobile").value.trim();
   const email = document.getElementById("reg-email").value.trim();
+  const password = document.getElementById("reg-password").value.trim();
 
-  firebase.database().ref("users/" + username).set({
-    name, mobile, email, password
-  }).then(() => {
-    sessionStorage.setItem("loggedIn", "true");
-    sessionStorage.setItem("username", username);
-    location.reload();
-  });
+  try {
+    const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+    const uid = userCredential.user.uid;
+
+    // Save extra user details in Realtime DB
+    await firebase.database().ref(`users/${uid}/user_details`).set({
+      name,
+      mobile,
+      email
+    });
+
+    location.reload(); // Login automatically after registration
+  } catch (error) {
+    alert(error.message);
+  }
 });
+
 
 // Switch to Register
 document.getElementById("go-to-register").addEventListener("click", function (e) {
@@ -2115,13 +2181,51 @@ document.getElementById("go-to-login").addEventListener("click", function (e) {
   loginError.style.display = "none";
 });
 
+function getCurrentUID() {
+  const user = firebase.auth().currentUser;
+  return user?.uid || null;
+}
 
-    // Initialize app
-    function initApp() {
-      loadWorkers();
-      renderWorkerList();
-      showWorkerList();
-    }
+
+
+async function loadWorkersFromFirebase() {
+  if (!currentUID) {
+    console.warn("User is null — skipping worker load");
+    return [];
+  }
+
+  const snapshot = await firebase.database().ref(`users/${currentUID}/workers`).once('value');
+  const data = snapshot.val();
+  return data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+}
+
+
+
+// Initialize app
+async function initApp() {
+  console.log("Calling loadWorkersFromFirebase()");
+  workers = await loadWorkersFromFirebase();
+  console.log("Loaded workers:", workers);
+  renderWorkerList();
+  showWorkerList();
+}
+
+firebase.auth().onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUID = user.uid; // ✅ save it globally
+    console.log("✅ Firebase user ready:", currentUID);
+    authContainer.style.display = "none";
+    appContainer.style.display = "block";
+    await initApp();
+  } else {
+    currentUID = null;
+    authContainer.style.display = "block";
+    appContainer.style.display = "none";
+  }
+});
+
+
+
     initApp();
   })();
 </script>
